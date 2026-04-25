@@ -543,7 +543,7 @@
                 </section>
 
                 <div id="milestone-modal" style="display:none;position:fixed;inset:0;z-index:200;background:rgba(0,0,0,0.7);backdrop-filter:blur(8px);align-items:center;justify-content:center;"></div>
-
+                <div id='share-modal' style='display:none;position:fixed;inset:0; z-index:300;background:rgba(0,0,0,0.75);backdrop-filter:blur(8px); align-items:center;justify-content:center;'></div>
                 <section id="simulate" style="min-height:100vh;padding:80px 5vw;">
                     <div style="display:grid;grid-template-columns:320px 1fr 300px;grid-template-rows:auto;gap:16px;align-items:start;min-height:80vh;">
                         <div style="display:flex;flex-direction:column;gap:12px;">
@@ -1232,21 +1232,140 @@
       const age60 = results.trajectory.find(t=>t.age===60)||results.trajectory[results.trajectory.length-1];
       const corpus = age60.balance;
       const atRisk = results.milestoneResults.filter(m=>m.shortfall).length;
-      const text = 'My Horizon Plan: Saving ₹'+s.monthlySavings.toLocaleString('en-IN')+'/mo at '+
-        (s.annualReturn*100).toFixed(0)+'% return → ₹'+(corpus/10000000).toFixed(1)+
-        ' Cr by age 60. '+s.milestones.length+' life goals, '+
-        (s.milestones.length-atRisk)+' on track. Built on Horizon.';
-      if (navigator.clipboard) {
-        navigator.clipboard.writeText(text).then(() => {
-          const btn = document.querySelector('[onclick="window.shareplan()"]');
-          if (btn) { btn.textContent = '✓ Copied!';
-            btn.style.color='var(--color-emerald)';
-            btn.style.borderColor='var(--color-emerald)';
-            setTimeout(()=>{ btn.innerHTML='🔗 Share Plan';
-              btn.style.color='var(--color-text-secondary)';
-              btn.style.borderColor='var(--color-border)'; },2000); }
-        });
-      }
+      const onTrack = s.milestones.length - atRisk;
+
+      const shareText = 'My Horizon Financial Plan 🌟\n\n' +
+        '📊 Saving ₹' + s.monthlySavings.toLocaleString('en-IN') + '/month\n' +
+        '📈 Annual return: ' + (s.annualReturn*100).toFixed(1) + '%\n' +
+        '🎯 Projected corpus by age 60: ₹' + (corpus/10000000).toFixed(2) + ' Cr\n' +
+        '✅ Life goals: ' + onTrack + ' on track, ' + atRisk + ' at risk\n\n' +
+        'Plan yours free on Horizon — your wealth, your timeline, your terms.';
+
+      const encodedText = encodeURIComponent(shareText);
+      const encodedSubject = encodeURIComponent('My Horizon Financial Plan');
+      const encodedBody = encodeURIComponent(shareText);
+
+      const modal = document.getElementById('share-modal');
+      modal.style.display = 'flex';
+      modal.innerHTML = `
+        <div class="glass-card" style="min-width:340px;max-width:420px;
+        width:90%;display:flex;flex-direction:column;gap:0;padding:0;overflow:hidden;">
+
+          <div style="padding:20px 24px 16px;border-bottom:1px solid var(--color-border);">
+            <div style="display:flex;align-items:center;justify-content:space-between;">
+              <h3 style="font-family:Cal Sans,sans-serif;font-size:18px;margin:0;">
+                Share Your Plan</h3>
+              <button onclick="document.getElementById('share-modal').style.display='none'"
+              style="background:transparent;border:none;color:var(--color-text-secondary);
+              font-size:20px;cursor:pointer;line-height:1;padding:0;">×</button>
+            </div>
+            <p style="font-size:12px;color:var(--color-text-secondary);margin:6px 0 0;">
+              Your plan summary is ready to share</p>
+          </div>
+
+          <div style="padding:16px 24px;display:flex;flex-direction:column;gap:10px;">
+
+            <a href="https://wa.me/?text=${encodedText}" target="_blank"
+            style="display:flex;align-items:center;gap:14px;padding:14px 16px;
+            background:rgba(37,211,102,0.08);border:1px solid rgba(37,211,102,0.25);
+            border-radius:12px;text-decoration:none;transition:all 0.2s;cursor:pointer;"
+            onmouseover="this.style.background='rgba(37,211,102,0.15)'"
+            onmouseout="this.style.background='rgba(37,211,102,0.08)'">
+              <div style="width:40px;height:40px;border-radius:50%;background:#25D366;
+              display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="white">
+                  <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/>
+                  <path d="M12 0C5.373 0 0 5.373 0 12c0 2.123.555 4.116 1.523 5.849L.057 23.5l5.797-1.522A11.95 11.95 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 22c-1.885 0-3.65-.52-5.162-1.426l-.37-.22-3.44.903.918-3.352-.24-.386A9.956 9.956 0 012 12C2 6.477 6.477 2 12 2s10 4.477 10 10-4.477 10-10 10z"/>
+                </svg>
+              </div>
+              <div>
+                <div style="font-size:14px;font-weight:600;color:#25D366;">WhatsApp</div>
+                <div style="font-size:12px;color:var(--color-text-secondary);">
+                  Share in a chat or group</div>
+              </div>
+            </a>
+
+            <a href="mailto:?subject=${encodedSubject}&body=${encodedBody}"
+            style="display:flex;align-items:center;gap:14px;padding:14px 16px;
+            background:rgba(0,211,127,0.06);border:1px solid var(--color-border);
+            border-radius:12px;text-decoration:none;transition:all 0.2s;cursor:pointer;"
+            onmouseover="this.style.background='rgba(0,211,127,0.12)'"
+            onmouseout="this.style.background='rgba(0,211,127,0.06)'">
+              <div style="width:40px;height:40px;border-radius:50%;
+              background:linear-gradient(135deg,#EA4335,#FBBC04);
+              display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="white">
+                  <path d="M20 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z"/>
+                </svg>
+              </div>
+              <div>
+                <div style="font-size:14px;font-weight:600;
+                color:var(--color-text-primary);">Email</div>
+                <div style="font-size:12px;color:var(--color-text-secondary);">
+                  Send via your mail app</div>
+              </div>
+            </a>
+
+            <a href="https://twitter.com/intent/tweet?text=${encodeURIComponent(
+              'My Horizon Financial Plan 🌟\n\n' +
+              '📊 Saving ₹' + s.monthlySavings.toLocaleString('en-IN') + '/month\n' +
+              '🎯 Corpus by 60: ₹' + (corpus/10000000).toFixed(2) + ' Cr\n' +
+              '✅ ' + onTrack + '/' + s.milestones.length + ' goals on track\n\n' +
+              '#PersonalFinance #Horizon')}"
+            target="_blank"
+            style="display:flex;align-items:center;gap:14px;padding:14px 16px;
+            background:rgba(0,0,0,0.15);border:1px solid rgba(255,255,255,0.08);
+            border-radius:12px;text-decoration:none;transition:all 0.2s;cursor:pointer;"
+            onmouseover="this.style.background='rgba(255,255,255,0.08)'"
+            onmouseout="this.style.background='rgba(0,0,0,0.15)'">
+              <div style="width:40px;height:40px;border-radius:50%;background:#000;
+              display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="white">
+                  <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.401 6.231H2.742l7.737-8.835L1.254 2.25H8.08l4.253 5.622zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
+                </svg>
+              </div>
+              <div>
+                <div style="font-size:14px;font-weight:600;
+                color:var(--color-text-primary);">X (Twitter)</div>
+                <div style="font-size:12px;color:var(--color-text-secondary);">
+                  Post to your followers</div>
+              </div>
+            </a>
+
+            <button onclick="
+              const t='${shareText.replace(/'/g, "\\'").replace(/\n/g,'\\n')}';
+              navigator.clipboard.writeText(t).then(()=>{
+                this.textContent='✓ Copied to clipboard!';
+                this.style.color='var(--color-emerald)';
+                this.style.borderColor='var(--color-emerald)';
+                setTimeout(()=>{
+                  this.innerHTML='📋 Copy to Clipboard';
+                  this.style.color='var(--color-text-secondary)';
+                  this.style.borderColor='var(--color-border)';
+                },2000);
+              });"
+            style="display:flex;align-items:center;justify-content:center;gap:10px;
+            padding:14px 16px;background:transparent;
+            border:1px solid var(--color-border);border-radius:12px;
+            color:var(--color-text-secondary);font-size:14px;font-weight:600;
+            cursor:pointer;font-family:inherit;width:100%;transition:all 0.2s;">
+              📋 Copy to Clipboard
+            </button>
+
+          </div>
+
+          <div style="padding:12px 24px 20px;">
+            <button onclick="document.getElementById('share-modal').style.display='none'"
+            style="width:100%;padding:10px;background:transparent;
+            border:1px solid var(--color-border);border-radius:10px;
+            color:var(--color-text-secondary);font-size:13px;cursor:pointer;
+            font-family:inherit;transition:all 0.2s;"
+            onmouseover="this.style.borderColor='var(--color-emerald)'"
+            onmouseout="this.style.borderColor='var(--color-border)'">
+              Cancel</button>
+          </div>
+        </div>
+      `;
     };
 
     window.calcGoal = function() {
