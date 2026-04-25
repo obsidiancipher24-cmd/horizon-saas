@@ -293,7 +293,37 @@
         .btn-primary { position:relative;overflow:hidden;background:var(--color-emerald);color:#000;font-family:var(--font-heading);border:none;border-radius:8px;padding:14px 28px;font-size:16px;font-weight:600;cursor:pointer;transition:transform 0.2s,background 0.2s;display:inline-flex;align-items:center;justify-content:center;text-decoration:none; }
         .btn-primary:hover { transform:scale(1.04);background:var(--color-emerald-dim); }
 
-        .glass-card { background:linear-gradient(135deg,rgba(10,22,40,0.7) 0%,rgba(10,22,40,0.4) 100%);backdrop-filter:blur(20px) saturate(180%);-webkit-backdrop-filter:blur(20px) saturate(180%);border:1px solid rgba(0,211,127,0.12);border-radius:16px;padding:24px;box-shadow:0 8px 32px rgba(0,0,0,0.4),inset 0 1px 0 rgba(0,211,127,0.1);transition:box-shadow 0.2s,transform 0.2s;transform-style:preserve-3d;will-change:transform;box-sizing:border-box;isolation:isolate; }
+        .glass-card { 
+            background:linear-gradient(135deg,rgba(10,22,40,0.7) 0%,rgba(10,22,40,0.4) 100%);
+            backdrop-filter:blur(20px) saturate(180%);
+            -webkit-backdrop-filter:blur(20px) saturate(180%);
+            border:1px solid rgba(0,211,127,0.12);
+            border-radius:16px;
+            padding:24px;
+            box-shadow:0 8px 32px rgba(0,0,0,0.4),inset 0 1px 0 rgba(0,211,127,0.1);
+            transition:box-shadow 0.2s,transform 0.2s;
+            transform-style:preserve-3d;
+            will-change:transform;
+            box-sizing:border-box;
+            isolation:isolate;
+            position: relative;
+        }
+        .glass-card::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 20px; right: 20px;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, rgba(0,211,127,0.25), transparent);
+            border-radius: 1px;
+        }
+        .stat-pill:hover .stat-val {
+            color: var(--color-emerald);
+            transition: color 0.2s;
+        }
+        #stats-bar {
+            scrollbar-width: none;
+        }
+        #stats-bar::-webkit-scrollbar { display: none; }
 
         .badge-ontrack { background:rgba(0,211,127,0.15);color:var(--color-emerald);font-size:12px;padding:4px 12px;border-radius:20px;font-weight:500;border:1px solid rgba(0,211,127,0.2); }
         .badge-atrisk { background:rgba(245,158,11,0.15);color:var(--color-amber);font-size:12px;padding:4px 12px;border-radius:20px;font-weight:500;border:1px solid rgba(245,158,11,0.2); }
@@ -376,7 +406,7 @@
             <div class="login-error" id="login-error">Incorrect email or password. Please try again.</div>
 
             <label class="login-label">Email address</label>
-            <input type="email" class="login-input" id="login-email" placeholder="you@example.com" autocomplete="email">
+            <input type="email" class="login-input" id="login-email" placeholder="nikshay@horizon.app" autocomplete="email">
 
             <label class="login-label">Password</label>
             <input type="password" class="login-input" id="login-password" placeholder="••••••••" autocomplete="current-password">
@@ -462,7 +492,7 @@
                 <section id="hero">
                     <div class="hero-inner">
                         <p class="section-label">Your financial future, visualized</p>
-                        <h1 class="hero-h1">Every rupee you save<br>is a milestone<br><em class="hero-em">made possible.</em></h1>
+                        <h1 class="hero-h1">Every rupee you <br>save is a milestone<br><em class="hero-em">made possible.</em></h1>
                         <p class="hero-sub">Drag your life goals onto a 60-year timeline. Watch compound interest build — or break — your plan in real time.</p>
                         <button class="btn-primary hero-cta" onclick="document.getElementById('timeline').scrollIntoView({behavior:'smooth'})">Build My Timeline →</button>
                         <p class="hero-hint">↓ Aditya's plan is pre-loaded — move the sliders to see the math change live</p>
@@ -472,6 +502,7 @@
                 <section id="timeline" style="min-height:100vh;padding:80px 5vw;">
                     <p class="section-label">Your Timeline</p>
                     <h2 style="font-family:Cal Sans,sans-serif;font-size:clamp(32px,4vw,48px);margin:8px 0 8px;">Drag milestones. Watch the math.</h2>
+                    <div style='width:48px;height:2px;background:var(--color-emerald);border-radius:1px;margin:8px 0 24px;opacity:0.7;'></div>
                     <p style="color:var(--color-text-secondary);margin-bottom:32px;">Age 20 to 80 — your entire financial life on one axis.</p>
                     
                     <div style="display:flex;gap:24px;align-items:center;margin-bottom:16px;padding:12px 16px;background:rgba(255,255,255,0.03);border-radius:10px;border:1px solid var(--color-border);flex-wrap:wrap;">
@@ -680,9 +711,9 @@
     <script>
     // Demo credentials — in a real app this would be server-side
     const DEMO_USERS = [
-        { email: 'aditya@horizon.app', password: 'horizon123', name: 'Aditya' },
-        { email: 'demo@horizon.app',   password: 'demo',        name: 'Demo User' },
-        { email: 'test@test.com',      password: 'test',        name: 'Tester' },
+        { email: 'nikshay@horizon.app',  password: 'nikshay123',  name: 'Nikshay' },
+        { email: 'komal@horizon.app',    password: 'komal123',    name: 'Komal' },
+        { email: 'shubham@horizon.app',  password: 'shubham123',  name: 'Shubham' },
     ];
 
     window.handleLogin = function() {
@@ -717,7 +748,7 @@
             } else {
                 btnText.style.display = 'block';
                 spinner.style.display = 'none';
-                errorEl.textContent = 'Incorrect email or password. Try: demo@horizon.app / demo';
+                errorEl.textContent = 'Try: nikshay@horizon.app / nikshay123|  komal@horizon.app / komal123  |  shubham@horizon.app / shubham123';
                 errorEl.style.display = 'block';
                 gsap.from('#login-error', { x: -8, duration: 0.3, ease: 'elastic.out(1,0.5)' });
                 gsap.to('#login-card', { x: [-6,6,-4,4,-2,2,0], duration: 0.4, ease: 'none' });
@@ -840,9 +871,9 @@
     window.horizonState = { currentAge:28, monthlySavings:25000, annualReturn:0.10, inflationRate:0.06, inflationEnabled:false, netWorth:500000, milestones:[] };
 
     window.templates = {
-        aditya:{ label:'Aditya — Creative Pro', icon:'🎨', milestones:[{id:1,label:'Buy apartment in Pune',age:32,cost:8000000,category:'home',icon:'🏠'},{id:2,label:'Start my studio',age:35,cost:1500000,category:'business',icon:'🎨'}]},
-        conservative:{ label:'Conservative Saver', icon:'🏦', milestones:[{id:1,label:'Emergency Fund',age:30,cost:300000,category:'savings',icon:'🏦'},{id:2,label:'Buy a Car',age:33,cost:800000,category:'vehicle',icon:'🚗'},{id:3,label:'Own Home',age:40,cost:7000000,category:'home',icon:'🏠'},{id:4,label:'Child Education',age:50,cost:3000000,category:'education',icon:'🎓'},{id:5,label:'Retirement Corpus',age:60,cost:20000000,category:'retirement',icon:'🌅'}]},
-        aggressive:{ label:'Aggressive Entrepreneur', icon:'🚀', milestones:[{id:1,label:'Seed Fund Startup',age:30,cost:2000000,category:'business',icon:'🚀'},{id:2,label:'Buy Office Space',age:35,cost:10000000,category:'property',icon:'🏢'},{id:3,label:'Series A Investment',age:38,cost:5000000,category:'business',icon:'📈'},{id:4,label:'Retirement Corpus',age:55,cost:50000000,category:'retirement',icon:'🌅'}]}
+        aditya:{ label:'Nikshay — Creative Pro', icon:'✨', milestones:[{id:1,label:'Buy apartment in Pune',age:32,cost:8000000,category:'home',icon:'🏠'},{id:2,label:'Start my studio',age:35,cost:1500000,category:'business',icon:'🎨'}]},
+        conservative:{ label:'Komal — Conservative Saver', icon:'🌸', milestones:[{id:1,label:'Emergency Fund',age:30,cost:300000,category:'savings',icon:'🏦'},{id:2,label:'Buy a Car',age:33,cost:800000,category:'vehicle',icon:'🚗'},{id:3,label:'Own Home',age:40,cost:7000000,category:'home',icon:'🏠'},{id:4,label:'Child Education',age:50,cost:3000000,category:'education',icon:'🎓'},{id:5,label:'Retirement Corpus',age:60,cost:20000000,category:'retirement',icon:'🌅'}]},
+        aggressive:{ label:'Shubham — Entrepreneur', icon:'🚀', milestones:[{id:1,label:'Seed Fund Startup',age:30,cost:2000000,category:'business',icon:'🚀'},{id:2,label:'Buy Office Space',age:35,cost:10000000,category:'property',icon:'🏢'},{id:3,label:'Series A Investment',age:38,cost:5000000,category:'business',icon:'📈'},{id:4,label:'Retirement Corpus',age:55,cost:50000000,category:'retirement',icon:'🌅'}]}
     };
 
     window.saveState = () => localStorage.setItem('horizonState', JSON.stringify(window.horizonState));
@@ -902,15 +933,94 @@
 
         [20,25,30,35,40,45,50,55,60,65,70,75,80].forEach(age=>{
             const x=ageToX(age);
-            const tick=document.createElementNS('http://www.w3.org/2000/svg','line');tick.setAttribute('x1',x);tick.setAttribute('y1',AX_BASE);tick.setAttribute('x2',x);tick.setAttribute('y2',AX_BASE+10);tick.setAttribute('stroke','#8899A6');tick.setAttribute('stroke-width','1');svg.appendChild(tick);
-            const lbl=document.createElementNS('http://www.w3.org/2000/svg','text');lbl.setAttribute('x',x);lbl.setAttribute('y',AX_BASE+26);lbl.setAttribute('text-anchor','middle');lbl.setAttribute('font-size','12');lbl.setAttribute('fill','#8899A6');lbl.textContent=age;svg.appendChild(lbl);
+            const isMajor = age % 10 === 0;
+            const tick=document.createElementNS('http://www.w3.org/2000/svg','line');
+            tick.setAttribute('x1',x); tick.setAttribute('y1',AX_BASE);
+            tick.setAttribute('x2',x); tick.setAttribute('y2',isMajor ? AX_BASE+16 : AX_BASE+10);
+            tick.setAttribute('stroke','#8899A6');
+            tick.setAttribute('stroke-width', isMajor ? '1.5' : '1');
+            svg.appendChild(tick);
+            
+            const lbl=document.createElementNS('http://www.w3.org/2000/svg','text');
+            lbl.setAttribute('x',x); lbl.setAttribute('y',AX_BASE+26);
+            lbl.setAttribute('text-anchor','middle');
+            lbl.setAttribute('font-size', isMajor ? '13' : '12');
+            if (isMajor) lbl.setAttribute('font-weight', '600');
+            lbl.setAttribute('fill', isMajor ? '#F0F4F8' : '#8899A6');
+            lbl.textContent=age;
+            svg.appendChild(lbl);
+        });
+
+        // A) Y-AXIS GRID LINES
+        [0.2, 0.4, 0.6, 0.8, 1.0].forEach(pct => {
+            const gridY = balToY(maxBal * pct);
+            const gridLine = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+            gridLine.setAttribute('x1', AX_START); gridLine.setAttribute('y1', gridY);
+            gridLine.setAttribute('x2', AX_END); gridLine.setAttribute('y2', gridY);
+            gridLine.setAttribute('stroke', 'rgba(136,153,166,0.12)');
+            gridLine.setAttribute('stroke-width', '1');
+            gridLine.setAttribute('stroke-dasharray', '4,8');
+            svg.appendChild(gridLine);
+
+            const gridLbl = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+            gridLbl.setAttribute('x', AX_START - 8); gridLbl.setAttribute('y', gridY + 4);
+            gridLbl.setAttribute('text-anchor', 'end');
+            gridLbl.setAttribute('font-size', '11');
+            gridLbl.setAttribute('fill', '#8899A6');
+            gridLbl.textContent = formatINR(maxBal * pct);
+            svg.appendChild(gridLbl);
         });
 
         const pts=results.trajectory.map(t=>ageToX(t.age)+','+balToY(t.balance)).join(' ');
         const firstX=ageToX(results.trajectory[0].age),lastX=ageToX(results.trajectory[results.trajectory.length-1].age);
         const fill=document.createElementNS('http://www.w3.org/2000/svg','polygon');fill.setAttribute('points',firstX+','+AX_BASE+' '+pts+' '+lastX+','+AX_BASE);fill.setAttribute('fill','rgba(0,211,127,0.07)');svg.appendChild(fill);
 
-        const line=document.createElementNS('http://www.w3.org/2000/svg','polyline');line.setAttribute('points',pts);line.setAttribute('fill','none');line.setAttribute('stroke','#00D37F');line.setAttribute('stroke-width','2');line.setAttribute('stroke-linejoin','round');svg.appendChild(line);
+        // C) AREA CHART GRADIENT EFFECT (Second layer)
+        const fill2=document.createElementNS('http://www.w3.org/2000/svg','polygon');
+        fill2.setAttribute('points',firstX+','+AX_BASE+' '+pts+' '+lastX+','+AX_BASE);
+        fill2.setAttribute('fill','rgba(0,211,127,0.03)');
+        svg.appendChild(fill2);
+
+        // E) PROJECTION LINE GLOW EFFECT
+        const glowLine=document.createElementNS('http://www.w3.org/2000/svg','polyline');
+        glowLine.setAttribute('points',pts);
+        glowLine.setAttribute('fill','none');
+        glowLine.setAttribute('stroke','#00D37F');
+        glowLine.setAttribute('stroke-width','6');
+        glowLine.setAttribute('opacity','0.06');
+        glowLine.setAttribute('stroke-linecap','round');
+        svg.appendChild(glowLine);
+
+        const line=document.createElementNS('http://www.w3.org/2000/svg','polyline');
+        line.setAttribute('points',pts);
+        line.setAttribute('fill','none');
+        line.setAttribute('stroke','#00D37F');
+        line.setAttribute('stroke-width','2.5');
+        line.setAttribute('stroke-linecap','round');
+        line.setAttribute('stroke-linejoin','round');
+        svg.appendChild(line);
+
+        // B) CURRENT AGE MARKER
+        const curX = ageToX(window.horizonState.currentAge);
+        const curLine = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+        curLine.setAttribute('x1', curX); curLine.setAttribute('y1', AX_TOP);
+        curLine.setAttribute('x2', curX); curLine.setAttribute('y2', AX_BASE);
+        curLine.setAttribute('stroke', 'rgba(0,211,127,0.35)');
+        curLine.setAttribute('stroke-width', '1.5');
+        curLine.setAttribute('stroke-dasharray', '3,5');
+        svg.appendChild(curLine);
+
+        const curLbl = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+        curLbl.setAttribute('x', curX); curLbl.setAttribute('y', AX_TOP - 10);
+        curLbl.setAttribute('font-size', '10'); curLbl.setAttribute('fill', '#00D37F');
+        curLbl.setAttribute('text-anchor', 'middle'); curLbl.setAttribute('letter-spacing', '0.1em');
+        curLbl.textContent = 'NOW';
+        svg.appendChild(curLbl);
+
+        const curDot = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+        curDot.setAttribute('cx', curX); curDot.setAttribute('cy', AX_BASE);
+        curDot.setAttribute('r', '4'); curDot.setAttribute('fill', '#00D37F');
+        svg.appendChild(curDot);
 
         const maxMilestoneCost=Math.max(...window.horizonState.milestones.map(m=>m.cost),0);
         if(maxMilestoneCost>0){
@@ -937,6 +1047,20 @@
 
         results.milestoneResults.forEach((m,i)=>{
             const cx=ageToX(m.age),color=m.shortfall?'#F59E0B':'#00D37F';
+            
+            // D) MILESTONE COST DOTS ON PROJECTION LINE
+            const trajPoint = results.trajectory.find(t => t.age === m.age) || results.trajectory.find(t => Math.abs(t.age - m.age) < 1);
+            if (trajPoint) {
+                const projY = balToY(trajPoint.balance);
+                const projTick = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+                projTick.setAttribute('x1', cx - 12); projTick.setAttribute('y1', projY);
+                projTick.setAttribute('x2', cx + 12); projTick.setAttribute('y2', projY);
+                projTick.setAttribute('stroke', color);
+                projTick.setAttribute('stroke-width', '1.5');
+                projTick.setAttribute('opacity', '0.6');
+                svg.appendChild(projTick);
+            }
+
             const vline=document.createElementNS('http://www.w3.org/2000/svg','line');vline.setAttribute('x1',cx);vline.setAttribute('y1',AX_TOP);vline.setAttribute('x2',cx);vline.setAttribute('y2',AX_BASE);vline.setAttribute('stroke',color);vline.setAttribute('stroke-width','1');vline.setAttribute('stroke-dasharray','4,4');vline.setAttribute('opacity','0.4');svg.appendChild(vline);
             const circle=document.createElementNS('http://www.w3.org/2000/svg','circle');circle.setAttribute('cx',cx);circle.setAttribute('cy',AX_BASE);circle.setAttribute('r','14');circle.setAttribute('fill','#050A0E');circle.setAttribute('stroke',color);circle.setAttribute('stroke-width','2');circle.style.cursor='grab';svg.appendChild(circle);
             const icon=document.createElementNS('http://www.w3.org/2000/svg','text');icon.setAttribute('x',cx);icon.setAttribute('y',AX_BASE+5);icon.setAttribute('text-anchor','middle');icon.setAttribute('font-size','13');icon.textContent=m.icon||'📍';svg.appendChild(icon);
@@ -1041,7 +1165,20 @@
 
         const heroH1=document.querySelector('.hero-h1');
         const text=heroH1.innerText;heroH1.innerHTML='';
-        text.split('').forEach(char=>{const span=document.createElement('span');span.innerText=char==='\n'?'\n':char;span.style.display='inline-block';span.style.opacity='0';heroH1.appendChild(span);});
+        text.split('').forEach(char => {
+            const span = document.createElement('span');
+            if (char === '\n') {
+                heroH1.appendChild(document.createElement('br'));
+                return;
+            }
+            span.innerText = char === ' ' ? '\u00A0' : char;
+            span.style.display = 'inline-block';
+            span.style.opacity = '0';
+            if (char === ' ') {
+                span.style.width = '0.28em';
+            }
+            heroH1.appendChild(span);
+        });
         gsap.to('.hero-h1 span',{opacity:1,y:0,rotateX:0,duration:0.4,stagger:0.03,startAt:{y:20,rotateX:90},ease:'power2.out'});
         gsap.from('.hero-inner > *:not(.hero-h1)',{opacity:0,y:40,stagger:0.15,duration:0.8,ease:'power2.out',delay:1});
 
