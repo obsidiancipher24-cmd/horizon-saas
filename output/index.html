@@ -382,7 +382,134 @@
     }
     animate();
 </script>
-    <!-- AGENT1:ENGINE -->
+    <!-- Simulation Engine -->
+    <script>
+    // ── STATE ──────────────────────────────────────────────────────
+    window.horizonState = {
+      currentAge: 28,
+      monthlySavings: 25000,
+      annualReturn: 0.10,
+      inflationRate: 0.06,
+      inflationEnabled: false,
+      netWorth: 500000,
+      milestones: [
+        { id:1, label:'Buy apartment in Pune', age:32, cost:8000000, category:'home', icon:'🏠' },
+        { id:2, label:'Start my studio', age:35, cost:1500000, category:'business', icon:'🎨' }
+      ]
+    };
+
+    // ── TEMPLATES ──────────────────────────────────────────────────
+    window.templates = {
+      aditya: { label:'Aditya — Creative Pro', icon:'🎨', milestones:[
+        { id:1, label:'Buy apartment in Pune', age:32, cost:8000000, category:'home', icon:'🏠' },
+        { id:2, label:'Start my studio', age:35, cost:1500000, category:'business', icon:'🎨' }
+      ]},
+      conservative: { label:'Conservative Saver', icon:'🏦', milestones:[
+        { id:1, label:'Emergency Fund', age:30, cost:300000, category:'savings', icon:'🏦' },
+        { id:2, label:'Buy a Car', age:33, cost:800000, category:'vehicle', icon:'🚗' },
+        { id:3, label:'Own Home', age:40, cost:7000000, category:'home', icon:'🏠' },
+        { id:4, label:'Child Education', age:50, cost:3000000, category:'education', icon:'🎓' },
+        { id:5, label:'Retirement Corpus', age:60, cost:20000000, category:'retirement', icon:'🌅' }
+      ]},
+      aggressive: { label:'Aggressive Entrepreneur', icon:'🚀', milestones:[
+        { id:1, label:'Seed Fund Startup', age:30, cost:2000000, category:'business', icon:'🚀' },
+        { id:2, label:'Buy Office Space', age:35, cost:10000000, category:'property', icon:'🏢' },
+        { id:3, label:'Series A Investment', age:38, cost:5000000, category:'business', icon:'📈' },
+        { id:4, label:'Retirement Corpus', age:55, cost:50000000, category:'retirement', icon:'🌅' }
+      ]}
+    };
+
+    window.loadTemplate = function(key) {
+      const t = window.templates[key];
+      if (!t) return;
+      window.horizonState.milestones = JSON.parse(JSON.stringify(t.milestones));
+      window.activeTemplate = key;
+      window.runAndRender();
+      window.saveState();
+    };
+
+    // ── PERSISTENCE ────────────────────────────────────────────────
+    window.saveState = function() {
+      localStorage.setItem('horizonState', JSON.stringify(window.horizonState));
+    };
+    window.loadState = function() {
+      try {
+        const saved = localStorage.getItem('horizonState');
+        if (saved) { window.horizonState = JSON.parse(saved); return true; }
+      } catch(e) {}
+      return false;
+    };
+
+    // ── CORE SIMULATION ────────────────────────────────────────────
+    window.runSimulation = function() {
+      const s = window.horizonState;
+      const milestones = [...s.milestones].sort((a,b) => a.age - b.age);
+      const monthlyRate = s.annualReturn / 12;
+      let balance = s.netWorth;
+      const trajectory = [];
+      const milestoneResults = [];
+      const processedIds = new Set();
+
+      for (let age = s.currentAge; age <= 80; age += 1/12) {
+        const roundedAge = Math.round(age * 12) / 12;
+        balance += s.monthlySavings;
+        balance *= (1 + monthlyRate);
+
+        milestones.forEach(m => {
+          if (!processedIds.has(m.id) && Math.abs(roundedAge - m.age) < 1/24) {
+            let cost = m.cost;
+            if (s.inflationEnabled) {
+              const yearsAway = m.age - s.currentAge;
+              cost = cost * Math.pow(1 + s.inflationRate, yearsAway);
+            }
+            const shortfall = balance < cost;
+            const gap = cost - balance;
+            milestoneResults.push({
+              id: m.id, label: m.label, age: m.age, cost, icon: m.icon, category: m.category,
+              balanceBefore: balance,
+              shortfall,
+              gap: shortfall ? gap : 0,
+              monthlySavingsNeeded: shortfall ? computeSavingsNeeded(s.netWorth, cost, m.age - s.currentAge, s.annualReturn) : 0
+            });
+            balance -= cost;
+            if (balance < 0) balance = 0;
+            processedIds.add(m.id);
+          }
+        });
+
+        if (Math.round(age * 12) % 12 === 0) {
+          trajectory.push({ age: Math.round(age), balance: Math.max(0, balance) });
+        }
+      }
+      return { trajectory, milestoneResults };
+    };
+
+    function computeSavingsNeeded(netWorth, targetCost, years, annualReturn) {
+      if (years <= 0) return targetCost;
+      const months = years * 12;
+      const r = annualReturn / 12;
+      const futureValueOfCurrentSavings = netWorth * Math.pow(1+r, months);
+      const remaining = Math.max(0, targetCost - futureValueOfCurrentSavings);
+      if (r === 0) return remaining / months;
+      return remaining * r / (Math.pow(1+r, months) - 1);
+    }
+
+    // ── MASTER RENDER ORCHESTRATOR ─────────────────────────────────
+    window.runAndRender = function() {
+      const results = window.runSimulation();
+      window.lastResults = results;
+      
+      // Placeholder checks for render functions to prevent errors
+      if (window.renderTimelineChart) window.renderTimelineChart(results);
+      if (window.renderMilestoneCards) window.renderMilestoneCards(results);
+      if (window.renderScenarioPanel) window.renderScenarioPanel(results);
+      if (window.updateMilestoneSpheres) window.updateMilestoneSpheres(results.milestoneResults);
+      
+      const maxBal = Math.max(...results.trajectory.map(t=>t.balance), 1);
+      window.netWorthAmplitude = Math.min(4, (maxBal / 5000000));
+      window.saveState();
+    };
+    </script>
     <!-- AGENT3:WIRING -->
 
 </body>
