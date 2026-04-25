@@ -485,6 +485,11 @@
                 <div class="stat-pill"><span class="stat-label">At Risk</span><span class="stat-val" id="sb-atrisk" style="color:#F59E0B">0</span></div>
                 <div class="stat-divider"></div>
                 <div class="stat-pill"><span class="stat-label">Retirement Ready</span><span class="stat-val" id="sb-retire">0%</span></div>
+                <div class='stat-divider'></div>
+                <div class='stat-pill'>
+                  <span class='stat-label'>Plan Health</span>
+                  <span class='stat-val' id='sb-health' style='color:var(--color-emerald);'>—</span>
+                </div>
                 <div style="margin-left:auto;display:flex;align-items:center;gap:8px;font-size:12px;color:var(--color-emerald);"><span style="width:6px;height:6px;border-radius:50%;background:var(--color-emerald);display:inline-block;animation:pulse 1.5s ease-in-out infinite;"></span>LIVE</div>
             </div>
 
@@ -521,6 +526,7 @@
                         <button class="zoom-btn btn-zoom" data-zoom="10">10 Year</button>
                         <button class="zoom-btn btn-zoom active" data-zoom="full">Full Life</button>
                         <button id="btn-export" onclick="window.exportSnapshot()" style="margin-left:auto;padding:8px 20px;background:transparent;border:1px solid var(--color-border);color:var(--color-text-secondary);border-radius:20px;cursor:pointer;font-size:13px;transition:all 0.2s;" onmouseover='this.style.borderColor="var(--color-emerald)";this.style.color="var(--color-emerald)"' onmouseout='this.style.borderColor="var(--color-border)";this.style.color="var(--color-text-secondary)"'>↗ Export Summary</button>
+                        <button onclick='window.shareplan()' style='padding:8px 20px; background:transparent;border:1px solid var(--color-border); color:var(--color-text-secondary);border-radius:20px;cursor:pointer; font-size:13px;transition:all 0.2s;' onmouseover='this.style.borderColor="var(--color-emerald)";this.style.color="var(--color-emerald)"' onmouseout='this.style.borderColor="var(--color-border)";this.style.color="var(--color-text-secondary)"'> 🔗 Share Plan</button>
                     </div>
 
                     <div id="timeline-scroll" style="overflow-x:auto;overflow-y:visible;padding-bottom:16px;position:relative;">
@@ -601,6 +607,17 @@
                             </div>
                             <div class="glass-card" style="padding:16px 20px;"><p style="font-size:11px;color:var(--color-text-secondary);text-transform:uppercase;letter-spacing:0.08em;margin:0 0 12px;">Goal Feasibility</p><div id="out-feasibility" style="display:flex;flex-direction:column;gap:8px;"></div></div>
                             <div class="glass-card" style="padding:16px 20px;"><p style="font-size:11px;color:var(--color-text-secondary);text-transform:uppercase;letter-spacing:0.08em;margin:0 0 12px;">Delta Surface</p><div id="out-delta" style="display:flex;flex-direction:column;gap:6px;"></div></div>
+
+                            <div class='glass-card' style='padding:16px 20px;margin-top:0;'>
+                              <p style='font-size:11px;color:var(--color-text-secondary); text-transform:uppercase;letter-spacing:0.08em;margin:0 0 12px;'> Savings Calculator</p>
+                              <p style='font-size:12px;color:var(--color-text-secondary);margin:0 0 10px;'> How much to save for a custom goal?</p>
+                              <div style='display:flex;flex-direction:column;gap:8px;'>
+                                <input type='number' id='calc-goal' placeholder='Target amount (₹)' style='width:100%;background:rgba(255,255,255,0.05);border:1px solid var(--color-border);border-radius:8px;color:var(--color-text-primary); padding:8px 12px;font-size:13px;outline:none;box-sizing:border-box;'>
+                                <input type='number' id='calc-years' placeholder='Years from now' style='width:100%;background:rgba(255,255,255,0.05);border:1px solid var(--color-border);border-radius:8px;color:var(--color-text-primary); padding:8px 12px;font-size:13px;outline:none;box-sizing:border-box;'>
+                                <button onclick='window.calcGoal()' style='width:100%;padding:9px;background:var(--color-emerald); color:#000;border:none;border-radius:8px;cursor:pointer; font-size:13px;font-weight:600;font-family:inherit;'>Calculate</button>
+                                <div id='calc-result' style='font-size:13px;color:var(--color-emerald); text-align:center;min-height:20px;font-weight:600;'></div>
+                              </div>
+                            </div>
                         </div>
                     </div>
                 </section>
@@ -1124,6 +1141,21 @@
         document.getElementById('sb-atrisk').textContent=atRisk;document.getElementById('sb-atrisk').style.color=atRisk>0?'#F59E0B':'var(--color-emerald)';
         const retirePct=Math.min(100,Math.round(corpusAt60/20000000*100));
         document.getElementById('sb-retire').textContent=retirePct+'%';document.getElementById('sb-retire').style.color=retirePct>=80?'var(--color-emerald)':retirePct>=50?'#F59E0B':'#EF4444';
+
+        const totalGoals = results.milestoneResults.length;
+        const onTrack = results.milestoneResults.filter(m=>!m.shortfall).length;
+        const retirePctH = Math.min(100, Math.round(corpusAt60/20000000*100));
+        const savingsScore = Math.min(100, Math.round((s.monthlySavings/50000)*40));
+        const goalScore = totalGoals > 0 ? Math.round((onTrack/totalGoals)*40) : 40;
+        const retireScore = Math.round(retirePctH * 0.2);
+        const healthScore = Math.min(100, savingsScore + goalScore + retireScore);
+        const healthEl = document.getElementById('sb-health');
+        if (healthEl) {
+          healthEl.textContent = healthScore + '/100';
+          healthEl.style.color = healthScore >= 75 ? 'var(--color-emerald)' :
+            healthScore >= 50 ? 'var(--color-amber)' : '#EF4444';
+        }
+
         const nextMs=s.milestones.filter(m=>m.age>s.currentAge).sort((a,b)=>a.age-b.age)[0];
         if(document.getElementById('tl-next'))document.getElementById('tl-next').textContent=nextMs?nextMs.icon+' '+nextMs.label+' @ '+nextMs.age:'None set';
         if(document.getElementById('tl-cage'))document.getElementById('tl-cage').textContent=s.currentAge;
@@ -1193,7 +1225,56 @@
     document.getElementById('ctrl-inflation').onchange=function(){window.horizonState.inflationEnabled=this.checked;document.getElementById('inflation-sub').style.display=this.checked?'block':'none';window.runAndRender();};
     document.getElementById('ctrl-inflrate').oninput=function(){window.horizonState.inflationRate=+this.value/100;window.runAndRender();};
 
-    window.exportSnapshot=function(){const s=window.horizonState;const results=window.lastResults;if(!results)return;const age60Point=results.trajectory.find(t=>t.age===60)||results.trajectory[results.trajectory.length-1];const corpusAt60=age60Point.balance;const atRisk=results.milestoneResults.filter(m=>m.shortfall);let html='<html><head><meta charset="UTF-8"><style>body{font-family:system-ui;background:#050A0E;color:#F0F4F8;padding:40px;max-width:700px;margin:auto;}h1{color:#00D37F;font-size:28px;margin-bottom:4px;}.card{background:#0A1628;border:1px solid rgba(0,211,127,0.15);border-radius:12px;padding:20px;margin:16px 0;}.em{color:#00D37F;font-weight:600;}.amber{color:#F59E0B;font-weight:600;}table{width:100%;border-collapse:collapse;}td,th{padding:8px 0;border-bottom:1px solid rgba(255,255,255,0.06);}th{color:#8899A6;font-size:12px;text-transform:uppercase;text-align:left;}</style></head><body>';html+='<h1>Horizon — My Financial Plan</h1><p style="color:#8899A6;">Generated on '+new Date().toLocaleDateString('en-IN')+'</p>';html+='<div class="card"><h3 style="margin:0 0 12px;">Parameters</h3><table><tr><td>Current Age</td><td class="em">'+s.currentAge+'</td></tr><tr><td>Monthly Savings</td><td class="em">₹'+s.monthlySavings.toLocaleString('en-IN')+'</td></tr><tr><td>Annual Return</td><td class="em">'+(s.annualReturn*100).toFixed(1)+'%</td></tr><tr><td>Starting Balance</td><td class="em">'+formatINR(s.netWorth)+'</td></tr><tr><td>Projected Corpus @ 60</td><td class="em">'+formatINR(corpusAt60)+'</td></tr></table></div>';html+='<div class="card"><h3 style="margin:0 0 12px;">Milestones</h3><table><tr><th>Goal</th><th>Age</th><th>Cost</th><th>Status</th></tr>';results.milestoneResults.forEach(m=>{html+='<tr><td>'+m.icon+' '+m.label+'</td><td>'+m.age+'</td><td>'+formatINR(m.cost)+'</td><td class="'+(m.shortfall?'amber':'em')+'">'+(m.shortfall?'AT RISK':'ON TRACK')+'</td></tr>';});html+='</table></div>';if(atRisk.length>0){html+='<div class="card"><h3 style="margin:0 0 12px;color:#F59E0B;">Action Required</h3>';atRisk.forEach(m=>{html+='<p>To achieve <strong>'+m.label+'</strong>, save ₹'+Math.round(m.monthlySavingsNeeded).toLocaleString('en-IN')+'/month more.</p>';});html+='</div>';}html+='</body></html>';const blob=new Blob([html],{type:'text/html'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='horizon-plan-'+Date.now()+'.html';a.click();URL.revokeObjectURL(a.href);};
+    window.shareplan = function() {
+      const s = window.horizonState;
+      const results = window.lastResults;
+      if (!results) return;
+      const age60 = results.trajectory.find(t=>t.age===60)||results.trajectory[results.trajectory.length-1];
+      const corpus = age60.balance;
+      const atRisk = results.milestoneResults.filter(m=>m.shortfall).length;
+      const text = 'My Horizon Plan: Saving ₹'+s.monthlySavings.toLocaleString('en-IN')+'/mo at '+
+        (s.annualReturn*100).toFixed(0)+'% return → ₹'+(corpus/10000000).toFixed(1)+
+        ' Cr by age 60. '+s.milestones.length+' life goals, '+
+        (s.milestones.length-atRisk)+' on track. Built on Horizon.';
+      if (navigator.clipboard) {
+        navigator.clipboard.writeText(text).then(() => {
+          const btn = document.querySelector('[onclick="window.shareplan()"]');
+          if (btn) { btn.textContent = '✓ Copied!';
+            btn.style.color='var(--color-emerald)';
+            btn.style.borderColor='var(--color-emerald)';
+            setTimeout(()=>{ btn.innerHTML='🔗 Share Plan';
+              btn.style.color='var(--color-text-secondary)';
+              btn.style.borderColor='var(--color-border)'; },2000); }
+        });
+      }
+    };
+
+    window.calcGoal = function() {
+      const goal = +document.getElementById('calc-goal').value;
+      const years = +document.getElementById('calc-years').value;
+      const r = window.horizonState.annualReturn / 12;
+      const months = years * 12;
+      const currentSavings = window.horizonState.netWorth * Math.pow(1+r, months);
+      const remaining = Math.max(0, goal - currentSavings);
+      const monthly = r === 0 ? remaining/months :
+        remaining * r / (Math.pow(1+r, months) - 1);
+      const el = document.getElementById('calc-result');
+      if (!goal || !years || years <= 0) {
+        el.textContent = 'Enter a goal and timeframe.';
+        el.style.color = 'var(--color-amber)';
+        return;
+      }
+      if (monthly <= 0) {
+        el.textContent = 'Your current balance already covers this goal!';
+        el.style.color = 'var(--color-emerald)';
+      } else {
+        el.textContent = 'Save ₹' + Math.ceil(monthly).toLocaleString('en-IN') + '/mo for ' + years + ' yrs';
+        el.style.color = 'var(--color-emerald)';
+      }
+    };
+
+    window.exportSnapshot=function(){
+const s=window.horizonState;const results=window.lastResults;if(!results)return;const age60Point=results.trajectory.find(t=>t.age===60)||results.trajectory[results.trajectory.length-1];const corpusAt60=age60Point.balance;const atRisk=results.milestoneResults.filter(m=>m.shortfall);let html='<html><head><meta charset="UTF-8"><style>body{font-family:system-ui;background:#050A0E;color:#F0F4F8;padding:40px;max-width:700px;margin:auto;}h1{color:#00D37F;font-size:28px;margin-bottom:4px;}.card{background:#0A1628;border:1px solid rgba(0,211,127,0.15);border-radius:12px;padding:20px;margin:16px 0;}.em{color:#00D37F;font-weight:600;}.amber{color:#F59E0B;font-weight:600;}table{width:100%;border-collapse:collapse;}td,th{padding:8px 0;border-bottom:1px solid rgba(255,255,255,0.06);}th{color:#8899A6;font-size:12px;text-transform:uppercase;text-align:left;}</style></head><body>';html+='<h1>Horizon — My Financial Plan</h1><p style="color:#8899A6;">Generated on '+new Date().toLocaleDateString('en-IN')+'</p>';html+='<div class="card"><h3 style="margin:0 0 12px;">Parameters</h3><table><tr><td>Current Age</td><td class="em">'+s.currentAge+'</td></tr><tr><td>Monthly Savings</td><td class="em">₹'+s.monthlySavings.toLocaleString('en-IN')+'</td></tr><tr><td>Annual Return</td><td class="em">'+(s.annualReturn*100).toFixed(1)+'%</td></tr><tr><td>Starting Balance</td><td class="em">'+formatINR(s.netWorth)+'</td></tr><tr><td>Projected Corpus @ 60</td><td class="em">'+formatINR(corpusAt60)+'</td></tr></table></div>';html+='<div class="card"><h3 style="margin:0 0 12px;">Milestones</h3><table><tr><th>Goal</th><th>Age</th><th>Cost</th><th>Status</th></tr>';results.milestoneResults.forEach(m=>{html+='<tr><td>'+m.icon+' '+m.label+'</td><td>'+m.age+'</td><td>'+formatINR(m.cost)+'</td><td class="'+(m.shortfall?'amber':'em')+'">'+(m.shortfall?'AT RISK':'ON TRACK')+'</td></tr>';});html+='</table></div>';if(atRisk.length>0){html+='<div class="card"><h3 style="margin:0 0 12px;color:#F59E0B;">Action Required</h3>';atRisk.forEach(m=>{html+='<p>To achieve <strong>'+m.label+'</strong>, save ₹'+Math.round(m.monthlySavingsNeeded).toLocaleString('en-IN')+'/month more.</p>';});html+='</div>';}html+='</body></html>';const blob=new Blob([html],{type:'text/html'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='horizon-plan-'+Date.now()+'.html';a.click();URL.revokeObjectURL(a.href);};
 
     document.querySelectorAll('.btn-zoom').forEach(btn=>btn.onclick=function(){
         document.querySelectorAll('.btn-zoom').forEach(b=>b.classList.remove('active'));this.classList.add('active');
