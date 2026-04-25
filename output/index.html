@@ -899,7 +899,10 @@
     window.runSimulation = function() {
         const s=window.horizonState;
         const milestones=[...s.milestones].sort((a,b)=>a.age-b.age);
-        const monthlyRate=s.annualReturn/12;
+        const effectiveAnnualReturn = s.inflationEnabled
+          ? Math.max(0.001, s.annualReturn - s.inflationRate)
+          : s.annualReturn;
+        const monthlyRate = effectiveAnnualReturn / 12;
         let balance=s.netWorth;
         const trajectory=[], milestoneResults=[], processedIds=new Set();
         for(let age=s.currentAge;age<=80;age+=1/12){
@@ -1165,7 +1168,7 @@
         document.getElementById('out-delta').innerHTML=`<table style='width:100%;border-collapse:collapse;font-size:12px;'><thead><tr style='color:var(--color-text-secondary);'><th style='text-align:left;padding:4px 0;font-weight:500;'>Goal</th><th style='text-align:right;padding:4px 0;font-weight:500;'>Gap</th><th style='text-align:right;padding:4px 0;font-weight:500;'>+₹/mo</th></tr></thead><tbody>${results.milestoneResults.filter(m=>m.shortfall).map(m=>`<tr><td style='padding:4px 0;'>${m.label}</td><td style='text-align:right;padding:4px 0;'>${formatINR(m.gap)}</td><td style='text-align:right;padding:4px 0;color:var(--color-emerald)'>₹${Math.round(m.monthlySavingsNeeded).toLocaleString()}</td></tr>`).join('')||'<tr><td colspan="3" style="text-align:center;padding:12px 0;color:var(--color-text-secondary);">All goals on track</td></tr>'}</tbody></table>`;
         const pctFull=Math.min(100,(corpusAt60/20000000)*100);document.getElementById('out-retire-bar').style.width=pctFull+'%';document.getElementById('out-retire-pct').textContent=`${Math.round(pctFull)}% covered`;document.getElementById('out-corpus').textContent=formatINR(corpusAt60);
         const tplDiv=document.getElementById('template-btns');
-        if(tplDiv){tplDiv.innerHTML='';Object.keys(window.templates).forEach(key=>{const t=window.templates[key];const active=window.activeTemplate===key;const btn=document.createElement('button');btn.className='btn-zoom';btn.style.cssText=`width:100%;display:flex;align-items:center;gap:10px;padding:10px 16px;border-radius:8px;margin-bottom:4px;text-align:left;justify-content:flex-start;${active?'border:1px solid var(--color-emerald);background:rgba(0,211,127,0.08);color:var(--color-emerald);':'border:1px solid var(--color-border);background:transparent;'}`;btn.innerHTML=`<span>${t.icon}</span><span>${t.label}</span>`;btn.onclick=()=>window.loadTemplate(key);tplDiv.appendChild(btn);});}
+        if(tplDiv){tplDiv.innerHTML='';Object.keys(window.templates).forEach(key=>{const t=window.templates[key];const active=window.activeTemplate===key;const btn=document.createElement('button');btn.className='btn-zoom';btn.style.cssText=`width:100%;display:flex;align-items:center;gap:10px;padding:10px 16px;border-radius:8px;margin-bottom:4px;text-align:left;justify-content:flex-start;transition:transform 0.2s;${active?'border:1px solid var(--color-emerald);background:rgba(0,211,127,0.08);color:var(--color-emerald);':'border:1px solid var(--color-border);background:transparent;'}`;btn.innerHTML=`<span>${t.icon}</span><span>${t.label}</span>`;btn.onmouseover=function(){this.style.transform='scale(1.02)';};btn.onmouseout=function(){this.style.transform='scale(1)';};btn.onclick=()=>window.loadTemplate(key);tplDiv.appendChild(btn);});}
         document.getElementById('val-savings').textContent='₹'+s.monthlySavings.toLocaleString('en-IN');document.getElementById('val-return').textContent=(s.annualReturn*100).toFixed(1)+'%';document.getElementById('val-inflrate').textContent=(s.inflationRate*100).toFixed(1)+'% p.a.';
     };
 
@@ -1176,7 +1179,16 @@
         window.saveState();
     };
 
-    window.loadTemplate=function(k){window.horizonState.milestones=JSON.parse(JSON.stringify(window.templates[k].milestones));window.activeTemplate=k;window.runAndRender();window.saveState();};
+    window.loadTemplate=function(k){
+        window.horizonState.milestones=JSON.parse(JSON.stringify(window.templates[k].milestones));
+        window.activeTemplate=k;
+        window.runAndRender();
+        window.saveState();
+        setTimeout(()=>{
+            const target=document.getElementById('simulate');
+            if(target)target.scrollIntoView({behavior:'smooth',block:'start'});
+        },150);
+    };
 
     window.editMilestone=function(id){const m=window.horizonState.milestones.find(x=>x.id===id);if(!m)return;const modal=document.getElementById('milestone-modal');modal.style.display='flex';modal.innerHTML=`<div class="glass-card" style="min-width:320px;display:flex;flex-direction:column;gap:16px;"><h3 style="font-family:Cal Sans;">Edit Milestone</h3><label class="ctrl-label">Label<input type="text" id="edit-label" value="${m.label}" style="width:100%;background:transparent;border:1px solid var(--color-border);border-radius:8px;color:white;padding:8px;"></label><label class="ctrl-label">Age<input type="number" id="edit-age" value="${m.age}" style="width:100%;background:transparent;border:1px solid var(--color-border);border-radius:8px;color:white;padding:8px;"></label><label class="ctrl-label">Cost (₹)<input type="number" id="edit-cost" value="${m.cost}" style="width:100%;background:transparent;border:1px solid var(--color-border);border-radius:8px;color:white;padding:8px;"></label><div style="display:flex;gap:10px;"><button class="btn-primary" onclick="window.saveMilestoneEdit(${id})">Save</button><button onclick="document.getElementById('milestone-modal').style.display='none'" class="btn-zoom">Cancel</button></div></div>`;};
     window.saveMilestoneEdit=function(id){const m=window.horizonState.milestones.find(x=>x.id===id);if(!m)return;m.label=document.getElementById('edit-label').value;m.age=+document.getElementById('edit-age').value;m.cost=+document.getElementById('edit-cost').value;document.getElementById('milestone-modal').style.display='none';window.runAndRender();};
