@@ -83,7 +83,7 @@
             transition: border-color 0.2s, transform 0.15s; 
         }
 
-        #orb1,#orb2,#orb3 { position:fixed;border-radius:50%; pointer-events:none;z-index:0;filter:blur(80px);opacity:0.07; }
+        #orb1,#orb2,#orb3 { position:fixed;border-radius:50%; pointer-events:none;z-index:0;filter:blur(80px);opacity:0.07; mix-blend-mode: screen; isolation: isolate; }
         #orb1 { width:600px;height:600px;background:#00D37F; top:-200px;left:-100px;animation:orbFloat1 12s ease-in-out infinite; }
         #orb2 { width:500px;height:500px;background:#00D37F; bottom:-150px;right:-100px;animation:orbFloat2 15s ease-in-out infinite; }
         #orb3 { width:400px;height:400px;background:#F59E0B; top:50%;left:50%;transform:translate(-50%,-50%); animation:orbFloat3 20s ease-in-out infinite;opacity:0.04; }
@@ -134,11 +134,8 @@
             transition: box-shadow 0.2s, transform 0.2s;
             transform-style: preserve-3d;
             will-change: transform;
-            min-width: 280px;
-            max-width: 340px;
-            display: flex;
-            flex-direction: column;
             box-sizing: border-box;
+            isolation: isolate;
         }
         .btn-primary:hover {
             transform: scale(1.04);
@@ -196,6 +193,28 @@
         .nav-links a:hover { 
             color: var(--color-text-primary); 
         }
+
+        @keyframes pulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:0.4;transform:scale(0.8)} }
+        .stat-pill { display:flex;flex-direction:column;gap:2px;min-width:fit-content; }
+        .stat-label { font-size:10px;letter-spacing:0.08em;text-transform:uppercase; color:var(--color-text-secondary);font-weight:500; }
+        .stat-val { font-size:15px;font-weight:600;color:var(--color-text-primary); }
+        .stat-divider { width:1px;height:32px;background:var(--color-border);flex-shrink:0; }
+
+        .param-group { display:flex;flex-direction:column;gap:6px; }
+        .param-label { font-size:12px;color:var(--color-text-secondary); font-weight:500;text-transform:uppercase;letter-spacing:0.06em; }
+        .param-input-row { display:flex;align-items:center;gap:8px; }
+        .param-prefix { color:var(--color-text-secondary);font-size:14px; }
+
+        @keyframes pulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:0.4;transform:scale(0.8)} }
+        .stat-pill { display:flex;flex-direction:column;gap:2px;min-width:fit-content; }
+        .stat-label { font-size:10px;letter-spacing:0.08em;text-transform:uppercase; color:var(--color-text-secondary);font-weight:500; }
+        .stat-val { font-size:15px;font-weight:600;color:var(--color-text-primary); }
+        .stat-divider { width:1px;height:32px;background:var(--color-border);flex-shrink:0; }
+
+        .param-group { display:flex;flex-direction:column;gap:6px; }
+        .param-label { font-size:12px;color:var(--color-text-secondary); font-weight:500;text-transform:uppercase;letter-spacing:0.06em; }
+        .param-input-row { display:flex;align-items:center;gap:8px; }
+        .param-prefix { color:var(--color-text-secondary);font-size:14px; }
 
         #hero { 
             min-height: 100vh; 
@@ -281,7 +300,7 @@
         }
 
         @media (max-width: 768px) {
-            #simulate div[style*="grid-template-columns"] {
+            #simulate > div {
                 grid-template-columns: 1fr !important;
             }
             #hero {
@@ -314,7 +333,6 @@
 
     <canvas id="bg-canvas" style="position:fixed;top:0;left:0;width:100vw;height:100vh;z-index:-1;pointer-events:none;"></canvas>
 
-    
     <div id="ui-layer">
         <nav id='navbar'>
           <div class='nav-logo'>Horizon</div>
@@ -325,6 +343,21 @@
           </div>
           <button class='btn-primary' onclick="document.getElementById('timeline').scrollIntoView({behavior:'smooth'})">Start Planning</button>
         </nav>
+
+        <div id='stats-bar' style='position:sticky;top:64px;z-index:90; background:rgba(5,10,14,0.95);backdrop-filter:blur(12px); border-bottom:1px solid var(--color-border); padding:10px 5vw;display:flex;gap:32px;align-items:center; overflow-x:auto;white-space:nowrap;'>
+          <div class='stat-pill'><span class='stat-label'>Monthly Savings</span><span class='stat-val' id='sb-savings'>₹25,000</span></div>
+          <div class='stat-divider'></div>
+          <div class='stat-pill'><span class='stat-label'>Annual Return</span><span class='stat-val' id='sb-return'>10.0%</span></div>
+          <div class='stat-divider'></div>
+          <div class='stat-pill'><span class='stat-label'>Corpus @ 60</span><span class='stat-val' id='sb-corpus' style='color:var(--color-emerald)'>—</span></div>
+          <div class='stat-divider'></div>
+          <div class='stat-pill'><span class='stat-label'>Milestones</span><span class='stat-val' id='sb-milestones'>2 goals</span></div>
+          <div class='stat-divider'></div>
+          <div class='stat-pill'><span class='stat-label'>At Risk</span><span class='stat-val' id='sb-atrisk' style='color:#F59E0B'>0</span></div>
+          <div class='stat-divider'></div>
+          <div class='stat-pill'><span class='stat-label'>Retirement Ready</span><span class='stat-val' id='sb-retire'>0%</span></div>
+          <div style='margin-left:auto;display:flex;align-items:center; gap:8px;font-size:12px;color:var(--color-emerald);'><span style='width:6px;height:6px;border-radius:50%; background:var(--color-emerald);display:inline-block; animation:pulse 1.5s ease-in-out infinite; position:relative;z-index:1;isolation:isolate;'></span>LIVE</div>
+        </div>
 
         <main>
             <section id='hero'>
@@ -341,13 +374,32 @@
                 <p class='section-label'>Your Timeline</p>
                 <h2 style='font-family:Cal Sans,sans-serif;font-size:clamp(32px,4vw,48px);margin:8px 0 8px;'>Drag milestones. Watch the math.</h2>
                 <p style='color:var(--color-text-secondary);margin-bottom:32px;'>Age 20 to 80 — your entire financial life on one axis.</p>
-                <div style='display:flex;gap:12px;margin-bottom:24px;'>
+                
+                <div style='display:flex;gap:24px;align-items:center; margin-bottom:16px;padding:12px 16px; background:rgba(255,255,255,0.03);border-radius:10px; border:1px solid var(--color-border);flex-wrap:wrap;'>
+                  <div class='stat-pill'><span class='stat-label'>Timeline</span><span class='stat-val' style='font-size:13px;'>Age 20 → 80</span></div>
+                  <div class='stat-divider'></div>
+                  <div class='stat-pill'><span class='stat-label'>Current Age</span><span class='stat-val' id='tl-cage' style='font-size:13px;'>28</span></div>
+                  <div class='stat-divider'></div>
+                  <div class='stat-pill'><span class='stat-label'>Next Milestone</span><span class='stat-val' id='tl-next' style='font-size:13px; color:var(--color-emerald);'>—</span></div>
+                  <div class='stat-divider'></div>
+                  <div class='stat-pill'><span class='stat-label'>Years to Plan</span><span class='stat-val' id='tl-years' style='font-size:13px;'>52</span></div>
+                  <div style='margin-left:auto;font-size:12px; color:var(--color-text-secondary);'>← Drag milestone markers to reposition</div>
+                </div>
+
+                <div style='display:flex;gap:12px;margin-bottom:24px;align-items:center;'>
                     <button class='zoom-btn btn-zoom' data-zoom='5'>5 Year</button>
                     <button class='zoom-btn btn-zoom' data-zoom='10'>10 Year</button>
                     <button class='zoom-btn btn-zoom active' data-zoom='full'>Full Life</button>
+                    <button id='btn-export' onclick='window.exportSnapshot()' style='margin-left:auto;padding:8px 20px; background:transparent;border:1px solid var(--color-border); color:var(--color-text-secondary);border-radius:20px; cursor:pointer;font-size:13px;transition:all 0.2s;' onmouseover='this.style.borderColor="var(--color-emerald)"; this.style.color="var(--color-emerald)"' onmouseout='this.style.borderColor="var(--color-border)"; this.style.color="var(--color-text-secondary)"'>↗ Export Summary</button>
                 </div>
-                <div id='timeline-scroll' style='overflow-x:auto;overflow-y:visible;padding-bottom:16px;'>
+                <div id='timeline-scroll' style='overflow-x:auto;overflow-y:visible;padding-bottom:16px;position:relative;'>
                     <svg id='timeline-svg' width='3000' height='340' style='display:block;'></svg>
+                    <div id='chart-tooltip' style='position:fixed;display:none; z-index:500;background:rgba(5,10,14,0.95); backdrop-filter:blur(12px);border:1px solid var(--color-border); border-radius:10px;padding:10px 14px;font-size:12px; pointer-events:none;min-width:160px;'>
+                      <div id='tt-age' style='font-weight:600; color:var(--color-text-primary);margin-bottom:4px;'></div>
+                      <div id='tt-balance' style='color:var(--color-emerald); font-size:14px;font-weight:600;'></div>
+                      <div id='tt-invested' style='color:var(--color-text-secondary); margin-top:4px;'></div>
+                      <div id='tt-growth' style='color:var(--color-emerald); opacity:0.7;'></div>
+                    </div>
                 </div>
                 <div id='milestone-cards' style='display:flex;flex-wrap:wrap;gap:16px;margin-top:32px;align-items:stretch;'></div>
                 <button onclick='window.openAddMilestone()' style='margin-top:16px;background:transparent;border:1px solid var(--color-border);color:var(--color-emerald);padding:10px 24px;border-radius:8px;cursor:pointer;font-size:14px;'>+ Add Milestone</button>
@@ -356,53 +408,78 @@
             <div id='milestone-modal' style='display:none;position:fixed;inset:0;z-index:200;background:rgba(0,0,0,0.7);backdrop-filter:blur(8px);align-items:center;justify-content:center;'></div>
                 
             <section id='simulate' style='min-height:100vh;padding:80px 5vw;'>
-                <p class='section-label'>What-If Scenarios</p>
-                <h2 style='font-family:Cal Sans,sans-serif;font-size:clamp(32px,4vw,48px);margin:8px 0 40px;'>Adjust the variables.<br>Own the outcome.</h2>
-                <div style='display:grid;grid-template-columns:1fr 1fr;gap:40px;align-items:start;'>
-
-                    <div class='glass-card' style='display:flex;flex-direction:column;gap:28px;'>
-                        <div class='control-group'>
-                            <label class='ctrl-label'>Monthly Savings</label>
-                            <div class='ctrl-row'><span class='ctrl-prefix'>₹</span><input type='range' id='ctrl-savings' min='5000' max='100000' step='1000' value='25000'><span id='val-savings' class='ctrl-val'>25,000</span></div>
-                        </div>
-                        <div class='control-group'>
-                            <label class='ctrl-label'>Annual Return</label>
-                            <div class='ctrl-row'><input type='range' id='ctrl-return' min='4' max='20' step='0.5' value='10'><span id='val-return' class='ctrl-val'>10.0%</span></div>
-                        </div>
-                        <div class='control-group'>
-                            <label class='ctrl-label'>Starting Balance</label>
-                            <div class='ctrl-row'><span class='ctrl-prefix'>₹</span><input type='number' id='ctrl-networth' value='500000' style='flex:1;background:transparent;border:1px solid var(--color-border);border-radius:8px;color:var(--color-text-primary);padding:8px 12px;font-size:14px;'></div>
-                        </div>
-                        <div class='control-group'>
-                            <label class='ctrl-label' style='display:flex;align-items:center;justify-content:space-between;'>
-                            Inflation Adjustment
-                            <label class='toggle-switch'><input type='checkbox' id='ctrl-inflation'><span class='toggle-slider'></span></label>
-                            </label>
-                            <div id='inflation-sub' style='display:none;margin-top:12px;'>
-                            <div class='ctrl-row'><input type='range' id='ctrl-inflrate' min='3' max='12' step='0.5' value='6'><span id='val-inflrate' class='ctrl-val'>6.0% p.a.</span></div>
-                            </div>
-                        </div>
-                        <div id='templates' style='display:flex;flex-direction:column;gap:10px;'>
-                            <p class='ctrl-label'>Templates</p>
-                        </div>
+                <div style='display:grid; grid-template-columns:320px 1fr 300px; grid-template-rows:auto; gap:16px; align-items:start; min-height:80vh;'>
+                  <!-- COL 1: MILESTONE MANAGER -->
+                  <div style='display:flex;flex-direction:column;gap:12px;'>
+                    <div class='glass-card' style='padding:16px 20px;'>
+                      <div style='display:flex;align-items:center; justify-content:space-between;margin-bottom:16px;'>
+                        <div><p class='section-label' style='margin:0;'>Goals</p><h3 style='font-family:Cal Sans,sans-serif;font-size:18px; margin:4px 0 0;'>Life Milestones</h3></div>
+                        <button onclick='window.openAddMilestone()' style='width:32px;height:32px;border-radius:50%; background:var(--color-emerald);color:#000;border:none; cursor:pointer;font-size:20px;line-height:1; display:flex;align-items:center;justify-content:center; transition:transform 0.2s;' onmouseover='this.style.transform="scale(1.1)"' onmouseout='this.style.transform="scale(1)"'>+</button>
+                      </div>
+                      <div id='milestone-drag-list' style='display:flex; flex-direction:column;gap:8px;min-height:200px;'></div>
                     </div>
+                    <div class='glass-card' style='padding:16px 20px;'><p class='section-label' style='margin:0 0 12px;'>Quick Templates</p><div style='display:flex;flex-direction:column;gap:8px;' id='template-btns'></div></div>
+                  </div>
 
-                    <div style='display:flex;flex-direction:column;gap:16px;'>
-                        <div class='glass-card'>
-                            <p style='font-size:12px;color:var(--color-text-secondary);margin-bottom:4px;'>Projected corpus at age 60</p>
-                            <p id='out-corpus' style='font-family:Cal Sans,sans-serif;font-size:40px;color:var(--color-emerald);'>₹0</p>
-                            <p style='font-size:12px;color:var(--color-text-secondary);'>at your current savings rate</p>
+                  <!-- COL 2: CONTROLS + KPIs -->
+                  <div style='display:flex;flex-direction:column;gap:16px;'>
+                    <div class='glass-card' style='padding:20px 24px;'>
+                      <p class='section-label' style='margin:0 0 20px;'>Parameters</p>
+                      <div style='display:grid;grid-template-columns:1fr 1fr;gap:20px;'>
+                        <div class='param-group' style='grid-column:1/-1;'>
+                          <label class='param-label'>Your Current Age</label>
+                          <div class='param-input-row'>
+                            <input type='range' id='ctrl-age' min='18' max='55' step='1' value='28' style='flex:1;accent-color:var(--color-emerald);'>
+                          </div>
+                          <div style='display:flex;justify-content:space-between;margin-top:6px;'>
+                            <span style='font-size:11px;color:var(--color-text-secondary);'>18</span>
+                            <span id='val-age' style='font-size:15px;font-weight:600; color:var(--color-emerald);'>Age 28</span>
+                            <span style='font-size:11px;color:var(--color-text-secondary);'>55</span>
+                          </div>
                         </div>
-                        <div class='glass-card' id='out-feasibility'></div>
-                        <div class='glass-card' id='out-delta'></div>
-                        <div class='glass-card'>
-                            <p style='font-size:13px;color:var(--color-text-secondary);margin-bottom:8px;'>Retirement readiness</p>
-                            <div style='background:rgba(255,255,255,0.08);border-radius:8px;height:8px;overflow:hidden;'>
-                            <div id='out-retire-bar' style='height:100%;background:var(--color-emerald);border-radius:8px;width:0%;transition:width 0.5s ease;'></div>
-                            </div>
-                            <p id='out-retire-pct' style='font-size:13px;margin-top:8px;color:var(--color-text-secondary);'>0% of retirement goal covered</p>
+                        <div class='param-group'>
+                          <label class='param-label'>Monthly Savings</label>
+                          <div class='param-input-row'><span class='param-prefix'>₹</span><input type='range' id='ctrl-savings' min='5000' max='100000' step='1000' value='25000'></div>
+                          <div style='display:flex;justify-content:space-between; margin-top:6px;'><span style='font-size:11px;color:var(--color-text-secondary);'>₹5K</span><span id='val-savings' style='font-size:15px;font-weight:600; color:var(--color-emerald);'>₹25,000</span><span style='font-size:11px;color:var(--color-text-secondary);'>₹1L</span></div>
                         </div>
+                        <div class='param-group'>
+                          <label class='param-label'>Annual Return</label>
+                          <div class='param-input-row'><input type='range' id='ctrl-return' min='4' max='20' step='0.5' value='10'></div>
+                          <div style='display:flex;justify-content:space-between; margin-top:6px;'><span style='font-size:11px;color:var(--color-text-secondary);'>4%</span><span id='val-return' style='font-size:15px;font-weight:600; color:var(--color-emerald);'>10.0%</span><span style='font-size:11px;color:var(--color-text-secondary);'>20%</span></div>
+                        </div>
+                        <div class='param-group'>
+                          <label class='param-label'>Starting Balance</label>
+                          <div style='display:flex;align-items:center;gap:8px;'><span style='color:var(--color-text-secondary);'>₹</span><input type='number' id='ctrl-networth' value='500000' style='flex:1;background:rgba(255,255,255,0.05); border:1px solid var(--color-border);border-radius:8px; color:var(--color-text-primary);padding:8px 12px; font-size:14px;outline:none;'></div>
+                        </div>
+                        <div class='param-group'>
+                          <label class='param-label' style='display:flex; align-items:center;justify-content:space-between;'>Inflation<label class='toggle-switch'><input type='checkbox' id='ctrl-inflation'><span class='toggle-slider'></span></label></label>
+                          <div id='inflation-sub' style='display:none;margin-top:8px;'><input type='range' id='ctrl-inflrate' min='3' max='12' step='0.5' value='6' style='width:100%;'><span id='val-inflrate' style='font-size:13px; color:var(--color-emerald);'>6.0% p.a.</span></div>
+                        </div>
+                      </div>
                     </div>
+                    <div style='display:grid;grid-template-columns:repeat(3,1fr); gap:12px;'>
+                      <div class='glass-card' style='padding:16px;text-align:center;'><p style='font-size:11px;color:var(--color-text-secondary); text-transform:uppercase;letter-spacing:0.08em;margin:0 0 8px;'>Total Invested</p><p id='kpi-invested' style='font-size:20px;font-weight:600; font-family:Cal Sans,sans-serif;color:var(--color-text-primary); margin:0;'>—</p></div>
+                      <div class='glass-card' style='padding:16px;text-align:center;'><p style='font-size:11px;color:var(--color-text-secondary); text-transform:uppercase;letter-spacing:0.08em;margin:0 0 8px;'>Wealth Multiplier</p><p id='kpi-multiplier' style='font-size:20px;font-weight:600; font-family:Cal Sans,sans-serif;color:var(--color-emerald); margin:0;'>—</p></div>
+                      <div class='glass-card' style='padding:16px;text-align:center;'><p style='font-size:11px;color:var(--color-text-secondary); text-transform:uppercase;letter-spacing:0.08em;margin:0 0 8px;'>Peak Net Worth</p><p id='kpi-peak' style='font-size:20px;font-weight:600; font-family:Cal Sans,sans-serif;color:var(--color-text-primary); margin:0;'>—</p></div>
+                    </div>
+                  </div>
+
+                  <!-- COL 3: OUTPUT CARDS -->
+                  <div style='display:flex;flex-direction:column;gap:12px;'>
+                    <div class='glass-card' style='padding:16px 20px;'>
+                      <p style='font-size:11px;color:var(--color-text-secondary); text-transform:uppercase;letter-spacing:0.08em;margin:0 0 4px;'>Projected Corpus @ 60</p>
+                      <p id='out-corpus' style='font-family:Cal Sans,sans-serif; font-size:32px;color:var(--color-emerald);margin:0;'>₹0</p>
+                      <p style='font-size:12px;color:var(--color-text-secondary); margin:4px 0 0;'>at current savings rate</p>
+                      <div style='margin-top:12px;height:1px; background:var(--color-border);'></div>
+                      <div style='margin-top:12px;'>
+                        <div style='display:flex;justify-content:space-between; margin-bottom:6px;'><span style='font-size:12px;color:var(--color-text-secondary);'>Retirement goal</span><span style='font-size:12px;color:var(--color-text-primary);'>₹2 Cr</span></div>
+                        <div style='background:rgba(255,255,255,0.08);border-radius:4px; height:6px;overflow:hidden;'><div id='out-retire-bar' style='height:100%; background:var(--color-emerald);border-radius:4px; width:0%;transition:width 0.6s ease;'></div></div>
+                        <p id='out-retire-pct' style='font-size:12px;margin:6px 0 0; color:var(--color-text-secondary);'>0% covered</p>
+                      </div>
+                    </div>
+                    <div class='glass-card' style='padding:16px 20px;'><p style='font-size:11px;color:var(--color-text-secondary); text-transform:uppercase;letter-spacing:0.08em;margin:0 0 12px;'>Goal Feasibility</p><div id='out-feasibility' style='display:flex; flex-direction:column;gap:8px;'></div></div>
+                    <div class='glass-card' style='padding:16px 20px;'><p style='font-size:11px;color:var(--color-text-secondary); text-transform:uppercase;letter-spacing:0.08em;margin:0 0 12px;'>Delta Surface</p><div id='out-delta' style='display:flex; flex-direction:column;gap:6px;'></div></div>
+                  </div>
                 </div>
             </section>
         </main>
@@ -430,7 +507,7 @@
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
     
     const scene = new THREE.Scene();
-    scene.fog = new THREE.FogExp2(0x050A0E, 0.008); // 3. DEPTH FOG
+    scene.fog = new THREE.FogExp2(0x050A0E, 0.008); 
 
     const camera = new THREE.PerspectiveCamera(75, window.innerWidth/window.innerHeight, 0.1, 1000);
     camera.position.z = 60;
@@ -477,7 +554,7 @@
         particlesGeometry.attributes.position.needsUpdate = true;
     }
 
-    // 1. GEOMETRIC CONSTELLATION NETWORK
+    // GEOMETRIC CONSTELLATION NETWORK
     const nodeCount = 80;
     const nodes = [];
     const nodeGroup = new THREE.Group();
@@ -503,7 +580,7 @@
         }
     }
 
-    // 2. FLOATING GEOMETRIC SHAPES
+    // FLOATING GEOMETRIC SHAPES
     const floaters = [];
     const floaterGeos = [
         new THREE.TorusGeometry(2, 0.4, 16, 60),
@@ -523,7 +600,7 @@
         scene.add(floater);
     });
 
-    // 4. MOUSE RIPPLE EFFECT
+    // MOUSE RIPPLE EFFECT
     const rings = [];
     const raycaster = new THREE.Raycaster();
     const planeZ = new THREE.Plane(new THREE.Vector3(0, 0, 1), 0);
@@ -557,12 +634,12 @@
         }});
     });
 
-    // 5. AMBIENT LIGHT PULSE
+    // AMBIENT LIGHT PULSE
     const pulseLight = new THREE.PointLight(0x00D37F, 0.4);
     pulseLight.position.set(0, 10, 20);
     scene.add(pulseLight);
 
-    // 6. STAR FIELD LAYER
+    // STAR FIELD LAYER
     const starCount = 1200;
     const starGeo = new THREE.BufferGeometry();
     const starPos = new Float32Array(starCount * 3);
@@ -632,7 +709,6 @@
         
         updateParticles();
 
-        // AGENT 2 — SCROLL-LINKED PARTICLE COLOR SHIFT
         const scrollPct = window.scrollY / (document.documentElement.scrollHeight - window.innerHeight);
         if (scrollPct <= 0.5) {
             particlesMaterial.color.lerpColors(emeraldColor, deepEmeraldColor, scrollPct * 2);
@@ -640,7 +716,6 @@
             particlesMaterial.color.lerpColors(deepEmeraldColor, emeraldColor, (scrollPct - 0.5) * 2);
         }
         
-        // Constellation Rotation & Pulse
         nodeGroup.rotation.y += 0.0003;
         nodes.forEach(node => {
             const mouse3D = new THREE.Vector3(mouseTarget.x * 50, mouseTarget.y * 50, 0);
@@ -649,17 +724,13 @@
             node.scale.lerp(new THREE.Vector3(targetScale, targetScale, targetScale), 0.1);
         });
 
-        // Floating Shapes
         floaters.forEach(f => {
             f.rotation.x += f.rotationSpeed.x;
             f.rotation.y += f.rotationSpeed.y;
             f.position.y += Math.sin(time + f.phaseOffset) * 0.005;
         });
 
-        // Light Pulse
         pulseLight.intensity = 0.3 + Math.sin(time * 0.8) * 0.15;
-
-        // Star Field Rotation
         starField.rotation.y += 0.00005;
 
         mouse.x += (mouseTarget.x - mouse.x) * 0.05;
@@ -753,77 +824,195 @@
     <!-- WIRING & UI LOGIC -->
     <script>
     window.renderTimelineChart = function(results) {
-        const svg = document.getElementById('timeline-svg'); svg.innerHTML = '';
-        const maxBalance = Math.max(...results.trajectory.map(t => t.balance), 1000000);
-        
-        const axis = document.createElementNS("http://www.w3.org/2000/svg", "line");
-        axis.setAttribute("x1", 60); axis.setAttribute("y1", 240); axis.setAttribute("x2", 2940); axis.setAttribute("y2", 240);
-        axis.setAttribute("stroke", "#8899A6"); axis.setAttribute("stroke-width", "1");
-        svg.appendChild(axis);
+        const svg = document.getElementById('timeline-svg');
+        if (!svg) return;
 
-        for (let age = 20; age <= 80; age += 5) {
-            const x = 60 + (age - 20) / 60 * 2880;
-            const tick = document.createElementNS("http://www.w3.org/2000/svg", "line");
-            tick.setAttribute("x1", x); tick.setAttribute("y1", 240); tick.setAttribute("x2", x); tick.setAttribute("y2", 255);
-            tick.setAttribute("stroke", "#8899A6"); svg.appendChild(tick);
-            const text = document.createElementNS("http://www.w3.org/2000/svg", "text");
-            text.setAttribute("x", x); text.setAttribute("y", 275); text.setAttribute("text-anchor", "middle");
-            text.setAttribute("fill", "#8899A6"); text.setAttribute("font-size", "13"); text.textContent = age;
-            svg.appendChild(text);
+        svg.innerHTML = '';
+
+        // Make SVG responsive to its container width
+        const container = document.getElementById('timeline-scroll');
+        const containerWidth = container ? container.offsetWidth : 1200;
+        const SVG_W = Math.max(containerWidth * 2.2, 2400);
+        const SVG_H = 340;
+        svg.setAttribute('width', SVG_W);
+        svg.setAttribute('viewBox', '0 0 ' + SVG_W + ' ' + SVG_H);
+
+        const maxBal = Math.max(...results.trajectory.map(t => t.balance), 1);
+        const AX_START = 60;
+        const AX_END = SVG_W - 60;
+        const AX_BASE = 260;
+        const AX_TOP = 50;
+
+        const ageToX = age => AX_START + ((age - 20) / 60) * (AX_END - AX_START);
+        const balToY = bal => AX_BASE - Math.min(bal / maxBal, 1) * (AX_BASE - AX_TOP);
+
+        // DRAW axis line
+        const axisLine = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+        axisLine.setAttribute('x1', AX_START); axisLine.setAttribute('y1', AX_BASE);
+        axisLine.setAttribute('x2', AX_END); axisLine.setAttribute('y2', AX_BASE);
+        axisLine.setAttribute('stroke', '#8899A6'); axisLine.setAttribute('stroke-width', '1');
+        svg.appendChild(axisLine);
+
+        // DRAW age ticks
+        [20,25,30,35,40,45,50,55,60,65,70,75,80].forEach(age => {
+            const x = ageToX(age);
+            const tick = document.createElementNS('http://www.w3.org/2000/svg','line');
+            tick.setAttribute('x1',x); tick.setAttribute('y1',AX_BASE);
+            tick.setAttribute('x2',x); tick.setAttribute('y2',AX_BASE+10);
+            tick.setAttribute('stroke','#8899A6'); tick.setAttribute('stroke-width','1');
+            svg.appendChild(tick);
+            const lbl = document.createElementNS('http://www.w3.org/2000/svg','text');
+            lbl.setAttribute('x',x); lbl.setAttribute('y',AX_BASE+26);
+            lbl.setAttribute('text-anchor','middle'); lbl.setAttribute('font-size','12');
+            lbl.setAttribute('fill','#8899A6'); lbl.textContent = age;
+            svg.appendChild(lbl);
+        });
+
+        // DRAW filled area
+        const pts = results.trajectory.map(t => ageToX(t.age) + ',' + balToY(t.balance)).join(' ');
+        const firstX = ageToX(results.trajectory[0].age);
+        const lastX = ageToX(results.trajectory[results.trajectory.length - 1].age);
+        const fill = document.createElementNS('http://www.w3.org/2000/svg', 'polygon');
+        fill.setAttribute('id', 'projection-fill');
+        fill.setAttribute('points', firstX + ',' + AX_BASE + ' ' + pts + ' ' + lastX + ',' + AX_BASE);
+        fill.setAttribute('fill', 'rgba(0,211,127,0.07)');
+        svg.appendChild(fill);
+
+        // DRAW projection line
+        const line = document.createElementNS('http://www.w3.org/2000/svg', 'polyline');
+        line.setAttribute('id', 'projection-line');
+        line.setAttribute('points', pts);
+        line.setAttribute('fill', 'none'); line.setAttribute('stroke', '#00D37F');
+        line.setAttribute('stroke-width', '2'); line.setAttribute('stroke-linejoin', 'round');
+        svg.appendChild(line);
+
+        // FEATURE 2 — SAVINGS GOAL MARKER
+        const maxMilestoneCost = Math.max(...window.horizonState.milestones.map(m => m.cost), 0);
+        if (maxMilestoneCost > 0) {
+            const targetY = balToY(maxMilestoneCost);
+            const targetLine = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+            targetLine.setAttribute('x1', AX_START); targetLine.setAttribute('y1', targetY);
+            targetLine.setAttribute('x2', AX_END); targetLine.setAttribute('y2', targetY);
+            targetLine.setAttribute('stroke', '#F59E0B'); targetLine.setAttribute('stroke-width', '1');
+            targetLine.setAttribute('stroke-dasharray', '6,4'); targetLine.setAttribute('opacity', '0.4');
+            svg.appendChild(targetLine);
+
+            const targetLbl = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+            targetLbl.setAttribute('x', AX_START + 8); targetLbl.setAttribute('y', targetY - 6);
+            targetLbl.setAttribute('font-size', '11'); targetLbl.setAttribute('fill', '#F59E0B');
+            targetLbl.setAttribute('opacity', '0.7'); targetLbl.textContent = 'Largest goal: ' + formatINR(maxMilestoneCost);
+            svg.appendChild(targetLbl);
         }
 
-        let points = results.trajectory.map(t => `${60+(t.age-20)/60*2880},${240-(t.balance/maxBalance)*200}`).join(' ');
-        const polyline = document.createElementNS("http://www.w3.org/2000/svg", "polyline");
-        polyline.setAttribute("points", points); polyline.setAttribute("stroke", "#00D37F"); polyline.setAttribute("stroke-width", "2"); polyline.setAttribute("fill", "none");
-        svg.appendChild(polyline);
+        let crossoverAge = null;
+        for (let i = 1; i < results.trajectory.length; i++) {
+            if (results.trajectory[i-1].balance < maxMilestoneCost && results.trajectory[i].balance >= maxMilestoneCost) {
+                crossoverAge = results.trajectory[i].age; break;
+            }
+        }
+        if (crossoverAge) {
+            const cx = ageToX(crossoverAge); const cy = balToY(maxMilestoneCost);
+            const star = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+            star.setAttribute('cx', cx); star.setAttribute('cy', cy); star.setAttribute('r', '5');
+            star.setAttribute('fill', '#00D37F'); star.setAttribute('opacity', '0.9');
+            svg.appendChild(star);
+            const starLbl = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+            starLbl.setAttribute('x', cx + 8); starLbl.setAttribute('y', cy + 4);
+            starLbl.setAttribute('font-size', '11'); starLbl.setAttribute('fill', '#00D37F');
+            starLbl.textContent = 'Break-even @ ' + crossoverAge;
+            svg.appendChild(starLbl);
+        }
 
-        const area = document.createElementNS("http://www.w3.org/2000/svg", "polygon");
-        area.setAttribute("points", `60,240 ${points} 2940,240`); area.setAttribute("fill", "rgba(0,211,127,0.07)");
-        svg.appendChild(area);
+        // FEATURE 4 — TOOLTIP LOGIC
+        svg.addEventListener('mousemove', function(e) {
+            const rect = svg.getBoundingClientRect();
+            const scaleX = SVG_W / rect.width;
+            const rawX = (e.clientX - rect.left) * scaleX;
+            const hoverAge = Math.round(20 + ((rawX - AX_START) / (AX_END - AX_START)) * 60);
+            if (hoverAge < 20 || hoverAge > 80) { document.getElementById('chart-tooltip').style.display = 'none'; return; }
+            const point = results.trajectory.find(t => t.age === hoverAge);
+            if (!point) return;
+            const months = (hoverAge - window.horizonState.currentAge) * 12;
+            const totalInv = window.horizonState.monthlySavings * Math.max(months, 0) + window.horizonState.netWorth;
+            const growth = point.balance - totalInv;
+            const tt = document.getElementById('chart-tooltip');
+            tt.style.display = 'block'; tt.style.left = (e.clientX + 16) + 'px'; tt.style.top = (e.clientY - 20) + 'px';
+            document.getElementById('tt-age').textContent = 'Age ' + hoverAge;
+            document.getElementById('tt-balance').textContent = 'Balance: ' + formatINR(Math.max(0, point.balance));
+            document.getElementById('tt-invested').textContent = 'Invested: ' + formatINR(Math.max(0, totalInv));
+            document.getElementById('tt-growth').textContent = 'Growth: +' + formatINR(Math.max(0, growth));
+        });
+        svg.addEventListener('mouseleave', function() { document.getElementById('chart-tooltip').style.display = 'none'; });
 
-        results.milestoneResults.forEach(m => {
-            const mx = 60 + (m.age - 20) / 60 * 2880;
-            const group = document.createElementNS("http://www.w3.org/2000/svg", "g");
-            const circle = document.createElementNS("http://www.w3.org/2000/svg", "circle");
-            circle.setAttribute("cx", mx); circle.setAttribute("cy", 240); circle.setAttribute("r", 14);
-            circle.setAttribute("fill", "#050A0E"); circle.setAttribute("stroke", m.shortfall ? "#F59E0B" : "#00D37F"); circle.setAttribute("stroke-width", "2");
-            group.appendChild(circle);
-            const icon = document.createElementNS("http://www.w3.org/2000/svg", "text");
-            icon.setAttribute("x", mx); icon.setAttribute("y", 245); icon.setAttribute("text-anchor", "middle"); icon.setAttribute("font-size", "13"); icon.textContent = m.icon;
-            group.appendChild(icon);
-            
-            // AGENT 3 — TIMELINE HOVER GLOW
-            const labelText = document.createElementNS("http://www.w3.org/2000/svg", "text");
-            labelText.setAttribute("x", mx); labelText.setAttribute("y", 210); labelText.setAttribute("text-anchor", "middle");
-            labelText.setAttribute("fill", "#F0F4F8"); labelText.setAttribute("font-size", "12"); labelText.setAttribute("opacity", "0");
-            labelText.textContent = `Age ${m.age}: ${m.label}`;
-            svg.appendChild(labelText);
+        // DRAW milestone markers
+        results.milestoneResults.forEach((m, i) => {
+            const cx = ageToX(m.age);
+            const color = m.shortfall ? '#F59E0B' : '#00D37F';
 
-            group.addEventListener('mouseenter', () => {
-                circle.style.filter = `drop-shadow(0 0 8px ${m.shortfall ? '#F59E0B' : '#00D37F'})`;
-                gsap.to(circle, { attr: { r: 18 }, strokeWidth: 3, duration: 0.3 });
-                gsap.to(labelText, { opacity: 1, y: 200, duration: 0.3 });
+            const vline = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+            vline.setAttribute('class', 'milestone-vline');
+            vline.setAttribute('x1', cx); vline.setAttribute('y1', AX_TOP);
+            vline.setAttribute('x2', cx); vline.setAttribute('y2', AX_BASE);
+            vline.setAttribute('stroke', color); vline.setAttribute('stroke-width', '1');
+            vline.setAttribute('stroke-dasharray', '4,4'); vline.setAttribute('opacity', '0.4');
+            svg.appendChild(vline);
+
+            const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+            circle.setAttribute('class', 'milestone-marker');
+            circle.setAttribute('cx', cx); circle.setAttribute('cy', AX_BASE);
+            circle.setAttribute('r', '14'); circle.setAttribute('fill', '#050A0E');
+            circle.setAttribute('stroke', color); circle.setAttribute('stroke-width', '2');
+            circle.style.cursor = 'grab';
+            svg.appendChild(circle);
+
+            const icon = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+            icon.setAttribute('class', 'milestone-marker');
+            icon.setAttribute('x', cx); icon.setAttribute('y', AX_BASE + 5);
+            icon.setAttribute('text-anchor', 'middle'); icon.setAttribute('font-size', '13');
+            icon.textContent = m.icon || '📍';
+            svg.appendChild(icon);
+
+            const label = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+            label.setAttribute('class', 'milestone-label');
+            label.setAttribute('x', cx); label.setAttribute('y', AX_BASE - 24);
+            label.setAttribute('text-anchor', 'middle'); label.setAttribute('font-size', '11');
+            label.setAttribute('fill', color);
+            label.textContent = m.label.length > 16 ? m.label.slice(0, 14) + '…' : m.label;
+            svg.appendChild(label);
+
+            let dragging = false;
+            circle.addEventListener('mousedown', e => {
+                dragging = true; circle.style.cursor = 'grabbing'; e.preventDefault();
             });
-            group.addEventListener('mouseleave', () => {
-                circle.style.filter = 'none';
-                gsap.to(circle, { attr: { r: 14 }, strokeWidth: 2, duration: 0.3 });
-                gsap.to(labelText, { opacity: 0, y: 210, duration: 0.3 });
-            });
-
-            group.addEventListener('mousedown', (e) => {
-                const onMove = (em) => {
-                    const pt = svg.createSVGPoint(); pt.x = em.clientX;
-                    const svgP = pt.matrixTransform(svg.getScreenCTM().inverse());
-                    const newAge = Math.round(20 + (Math.max(60, Math.min(2940, svgP.x)) - 60) / 2880 * 60);
-                    window.horizonState.milestones.find(x => x.id === m.id).age = Math.max(window.horizonState.currentAge, newAge);
+            const handleMove = e => {
+                if (!dragging) return;
+                const svgRect = svg.getBoundingClientRect();
+                const scaleX = SVG_W / svgRect.width;
+                const rawX = ((e.clientX || (e.touches && e.touches[0].clientX)) - svgRect.left) * scaleX;
+                const clampedX = Math.max(AX_START, Math.min(AX_END, rawX));
+                const newAge = Math.round(20 + ((clampedX - AX_START) / (AX_END - AX_START)) * 60);
+                const ms = window.horizonState.milestones.find(x => x.id === m.id);
+                if (ms && ms.age !== newAge) {
+                    ms.age = Math.max(window.horizonState.currentAge, newAge);
                     window.runAndRender();
-                };
-                const onUp = () => { document.removeEventListener('mousemove', onMove); document.removeEventListener('mouseup', onUp); };
-                document.addEventListener('mousemove', onMove); document.addEventListener('mouseup', onUp);
-            });
-            svg.appendChild(group);
+                }
+                if (e.touches) e.preventDefault();
+            };
+            const handleUp = () => { if (dragging) { dragging = false; circle.style.cursor = 'grab'; } };
+            document.addEventListener('mousemove', handleMove);
+            document.addEventListener('mouseup', handleUp);
+            circle.addEventListener('touchstart', e => { dragging = true; e.preventDefault(); }, { passive: false });
+            circle.addEventListener('touchmove', handleMove, { passive: false });
+            circle.addEventListener('touchend', handleUp);
         });
     };
+
+    if (window.horizonResizeObserver) window.horizonResizeObserver.disconnect();
+    window.horizonResizeObserver = new ResizeObserver(() => {
+        if (window.lastResults) window.renderTimelineChart(window.lastResults);
+    });
+    const timelineScrollNode = document.getElementById('timeline-scroll');
+    if (timelineScrollNode) window.horizonResizeObserver.observe(timelineScrollNode);
 
     function formatINR(amount) {
         if (amount >= 10000000) return '₹' + (amount / 10000000).toFixed(2) + ' Cr';
@@ -834,94 +1023,205 @@
     window.renderMilestoneCards = function(results) {
         const container = document.getElementById('milestone-cards'); 
         container.innerHTML = '';
-        
-        results.milestoneResults.forEach(m => {
+        results.milestoneResults.forEach(r => {
             const card = document.createElement('div'); 
             card.className = 'glass-card';
-            // Flex column ensured by CSS update earlier
-            
             card.innerHTML = `
                 <div style="display:flex;justify-content:space-between;align-items:center;">
-                    <span style="font-size:24px;">${m.icon}</span>
-                    <span class="badge-ontrack" style="font-size:10px;text-transform:uppercase;">${m.category || 'Goal'}</span>
+                    <span style="font-size:24px;">${r.icon}</span>
+                    <span class="badge-ontrack" style="font-size:10px;text-transform:uppercase;">${r.category || 'Goal'}</span>
                 </div>
-                
-                <h3 style="font-family:Cal Sans;font-weight:600;font-size:16px;margin:10px 0 4px;">${m.label}</h3>
-                
+                <h3 style="font-family:Cal Sans;font-weight:600;font-size:16px;margin:10px 0 4px;">${r.label}</h3>
                 <p style="color:var(--color-text-secondary);font-size:13px;margin:0 0 12px;">
-                    Age ${m.age} · ${formatINR(m.cost)}
+                    Age ${r.age} · ${formatINR(r.cost)}
                 </p>
-                
                 <div style="margin-bottom:8px;">
-                    <span class="${m.shortfall ? 'badge-atrisk' : 'badge-ontrack'}">
-                        ${m.shortfall ? 'AT RISK' : 'ON TRACK'}
-                    </span>
+                    <span class="${r.shortfall ? 'badge-atrisk' : 'badge-ontrack'}">${r.shortfall ? 'AT RISK' : 'ON TRACK'}</span>
                 </div>
-
-                ${m.shortfall ? `
-                    <p style="color:var(--color-amber);font-size:12px;line-height:1.5;margin:4px 0 0;">
-                        Short by ${formatINR(m.gap)}. Save ₹${Math.round(m.monthlySavingsNeeded).toLocaleString('en-IN')}/mo more.
-                    </p>
-                ` : ''}
-
-                <div style="flex:1;"></div> <!-- Spacer to push buttons down -->
-
-                <div style="display:flex;align-items:center;gap:10px;margin-top:16px;flex-wrap:nowrap;">
-                    <button onclick="window.editMilestone(${m.id})" 
-                        onmouseover="this.style.opacity='0.85'" onmouseout="this.style.opacity='1'"
-                        style="flex:1;min-width:0;padding:8px 0;background:var(--color-emerald);color:#000;border:none;border-radius:8px;cursor:pointer;font-size:13px;font-weight:600;font-family:inherit;transition:opacity 0.2s;position:relative;overflow:hidden;">
-                        Edit
-                    </button>
-                    <button onclick="window.deleteMilestone(${m.id})" 
-                        onmouseover="this.style.background='rgba(245,158,11,0.1)'" onmouseout="this.style.background='transparent'"
-                        style="flex:1;min-width:0;padding:8px 0;background:transparent;color:var(--color-amber);border:1px solid rgba(245,158,11,0.35);border-radius:8px;cursor:pointer;font-size:13px;font-weight:600;font-family:inherit;transition:all 0.2s;position:relative;overflow:hidden;">
-                        Delete
-                    </button>
+                ${r.shortfall ? `<p style="color:var(--color-amber);font-size:12px;line-height:1.5;margin:4px 0 0;">Short by ${formatINR(r.gap)}. Save ₹${Math.round(r.monthlySavingsNeeded).toLocaleString('en-IN')}/mo more.</p>` : ''}
+                <div style="flex:1;"></div>
+                <div style="display:flex;flex-direction:row;gap:12px;margin-top:16px;width:100%;box-sizing:border-box;">
+                    <button onclick="window.editMilestone(${r.id})" style="flex:1;padding:9px 0;background:var(--color-emerald);color:#000;border:none;border-radius:8px;cursor:pointer;font-size:13px;font-weight:600;font-family:inherit;white-space:nowrap;position:relative;overflow:hidden;transition:opacity 0.2s;">Edit</button>
+                    <button onclick="window.deleteMilestone(${r.id})" style="flex:1;padding:9px 0;background:transparent;color:#F59E0B;border:1.5px solid rgba(245,158,11,0.4);border-radius:8px;cursor:pointer;font-size:13px;font-weight:600;font-family:inherit;white-space:nowrap;position:relative;overflow:hidden;transition:all 0.2s;">Delete</button>
                 </div>
             `;
             container.appendChild(card);
         });
     };
 
+    window.renderMilestoneDragList = function(results) {
+        const container = document.getElementById('milestone-drag-list');
+        if(!container) return;
+        container.innerHTML = '';
+        
+        const milestones = [...window.horizonState.milestones].sort((a,b)=>a.age-b.age);
+        let dragSrcId = null;
+
+        milestones.forEach(m => {
+            const mr = results.milestoneResults.find(x=>x.id===m.id) || {};
+            const shortfall = mr.shortfall;
+            const color = shortfall ? '#F59E0B' : 'var(--color-emerald)';
+            const bgOpacity = shortfall ? 'rgba(245,158,11,0.12)' : 'rgba(0,211,127,0.12)';
+
+            const row = document.createElement('div');
+            row.className = 'ms-row'; row.draggable = true; row.dataset.id = m.id;
+            row.style.cssText = `display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:10px;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.06);cursor:grab;transition:all 0.2s;position:relative;`;
+            
+            row.innerHTML = `
+                <div style='color:var(--color-text-secondary);font-size:16px;cursor:grab;user-select:none;'>⠿</div>
+                <span style='font-size:20px;'>${m.icon}</span>
+                <div style='flex:1;min-width:0;'>
+                  <div style='font-size:13px;font-weight:600;color:var(--color-text-primary);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;'>${m.label}</div>
+                  <div style='font-size:11px;color:var(--color-text-secondary);margin-top:2px;'>
+                    Age ${m.age} · <span contenteditable='true' id='cost-inline-${m.id}' onblur='window.updateMilestoneCost(${m.id}, this)' onkeydown='if(event.key==="Enter"){event.preventDefault();this.blur();}' style='color:var(--color-emerald);outline:none;border-bottom:1px dashed rgba(0,211,127,0.4);cursor:text;min-width:20px;display:inline-block;'>${formatINR(m.cost)}</span>
+                  </div>
+                </div>
+                <div style='width:8px;height:8px;border-radius:50%;background:${color};flex-shrink:0;'></div>
+                <div style='display:flex;flex-direction:column;align-items:flex-end;gap:4px;'>
+                  <span style='font-size:11px;font-weight:600;color:${color};background:${bgOpacity};padding:2px 8px;border-radius:4px;'>${shortfall?'AT RISK':'ON TRACK'}</span>
+                  <div style='display:flex;gap:6px;'>
+                    <button onclick='window.editMilestone(${m.id})' style='font-size:11px;padding:3px 10px;background:var(--color-emerald);color:#000;border:none;border-radius:6px;cursor:pointer;font-weight:600;'>Edit</button>
+                    <button onclick='window.deleteMilestone(${m.id})' style='font-size:11px;padding:3px 10px;background:transparent;color:#F59E0B;border:1px solid rgba(245,158,11,0.35);border-radius:6px;cursor:pointer;font-weight:600;'>Del</button>
+                  </div>
+                </div>
+            `;
+
+            row.addEventListener('dragstart', e => { dragSrcId = +row.dataset.id; row.style.opacity = '0.4'; e.dataTransfer.effectAllowed = 'move'; });
+            row.addEventListener('dragend', () => { row.style.opacity='1'; });
+            row.addEventListener('dragover', e => { e.preventDefault(); e.dataTransfer.dropEffect = 'move'; row.style.background = 'rgba(0,211,127,0.08)'; row.style.borderColor = 'rgba(0,211,127,0.3)'; });
+            row.addEventListener('dragleave', () => { row.style.background = 'rgba(255,255,255,0.03)'; row.style.borderColor = 'rgba(255,255,255,0.06)'; });
+            row.addEventListener('drop', e => {
+              e.preventDefault();
+              row.style.background = 'rgba(255,255,255,0.03)'; row.style.borderColor = 'rgba(255,255,255,0.06)';
+              if (dragSrcId === +row.dataset.id) return;
+              const msList = window.horizonState.milestones;
+              const srcIdx = msList.findIndex(x=>x.id===dragSrcId);
+              const tgtIdx = msList.findIndex(x=>x.id===+row.dataset.id);
+              const [removed] = msList.splice(srcIdx, 1);
+              msList.splice(tgtIdx, 0, removed);
+              window.runAndRender();
+            });
+
+            container.appendChild(row);
+        });
+    };
+
+    window.updateMilestoneCost = function(id, el) {
+        const raw = el.textContent.replace(/[₹,LCr\s]/g, '');
+        let val = parseFloat(raw);
+        if (isNaN(val) || val <= 0) {
+            const m = window.horizonState.milestones.find(x=>x.id===id);
+            el.textContent = formatINR(m ? m.cost : 0);
+            return;
+        }
+        if (val < 1000) val = val * 100000;
+        const m = window.horizonState.milestones.find(x=>x.id===id);
+        if (m) { m.cost = val; window.runAndRender(); }
+    };
+
     window.renderScenarioPanel = function(results) {
         const s = window.horizonState;
-        const corpus = (results.trajectory.find(t => t.age === 60) || results.trajectory[results.trajectory.length-1]).balance;
-        document.getElementById('out-corpus').textContent = corpus >= 10000000 ? `₹${(corpus/10000000).toFixed(2)} Cr` : `₹${(corpus/100000).toFixed(2)} L`;
-        
+        const totalMonths = (60 - s.currentAge) * 12;
+        const totalInvested = s.monthlySavings * totalMonths + s.netWorth;
+        const age60Point = results.trajectory.find(t => t.age === 60) || results.trajectory[results.trajectory.length-1];
+        const corpusAt60 = age60Point.balance;
+        const multiplier = corpusAt60 / Math.max(totalInvested, 1);
+        const peakBalance = Math.max(...results.trajectory.map(t=>t.balance));
+
+        // Update KPIs
+        document.getElementById('kpi-invested').textContent = formatINR(totalInvested);
+        document.getElementById('kpi-multiplier').textContent = multiplier.toFixed(1)+'x';
+        document.getElementById('kpi-peak').textContent = formatINR(peakBalance);
+
+        // Update Stats Bar
+        document.getElementById('sb-savings').textContent = '₹' + s.monthlySavings.toLocaleString('en-IN');
+        document.getElementById('sb-return').textContent = (s.annualReturn*100).toFixed(1)+'%';
+        document.getElementById('sb-corpus').textContent = formatINR(corpusAt60);
+        document.getElementById('sb-milestones').textContent = s.milestones.length + ' goals';
+        const atRisk = results.milestoneResults.filter(m=>m.shortfall).length;
+        document.getElementById('sb-atrisk').textContent = atRisk;
+        document.getElementById('sb-atrisk').style.color = atRisk > 0 ? '#F59E0B' : 'var(--color-emerald)';
+        const retirePct = Math.min(100, Math.round(corpusAt60/20000000*100));
+        document.getElementById('sb-retire').textContent = retirePct+'%';
+        document.getElementById('sb-retire').style.color = retirePct >= 80 ? 'var(--color-emerald)' : retirePct >= 50 ? '#F59E0B' : '#EF4444';
+
+        // Update Timeline Labels
+        const nextMs = s.milestones.filter(m=>m.age > s.currentAge).sort((a,b)=>a.age-b.age)[0];
+        if(document.getElementById('tl-next')) document.getElementById('tl-next').textContent = nextMs ? nextMs.icon+' '+nextMs.label+' @ '+nextMs.age : 'None set';
+        if(document.getElementById('tl-cage')) document.getElementById('tl-cage').textContent = s.currentAge;
+        if(document.getElementById('tl-years')) document.getElementById('tl-years').textContent = 80 - s.currentAge;
+
+        // Update Feasibility & Delta
         const feas = document.getElementById('out-feasibility');
-        feas.innerHTML = '<p class="ctrl-label">Goal Feasibility</p>';
+        feas.innerHTML = '';
         results.milestoneResults.slice(0, 4).forEach(m => {
-            const row = document.createElement('div'); row.style.display='flex'; row.style.justifyContent='space-between'; row.style.marginBottom='8px';
-            row.innerHTML = `<span style="font-size:13px;">${m.icon} ${m.label}</span><span class="${m.shortfall?'badge-atrisk':'badge-ontrack'}" style="font-size:10px;">${m.shortfall?'AT RISK':'ON TRACK'}</span>`;
+            const row = document.createElement('div'); row.style.display='flex'; row.style.flexDirection='column'; row.style.gap='4px';
+            const status = m.shortfall ? 'AT RISK' : 'ON TRACK';
+            const color = m.shortfall ? '#F59E0B' : 'var(--color-emerald)';
+            row.innerHTML = `
+                <div style='display:flex;justify-content:space-between;align-items:center;'>
+                    <span style='font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;'>${m.icon} ${m.label}</span>
+                    <span class="${m.shortfall?'badge-atrisk':'badge-ontrack'}" style='font-size:10px;'>${status}</span>
+                </div>
+                ${m.shortfall ? `<p style='margin:0;font-size:11px;color:#F59E0B;'>Short ${formatINR(m.gap)} · Need ₹${Math.round(m.monthlySavingsNeeded).toLocaleString()}/mo more</p>` : ''}
+            `;
             feas.appendChild(row);
         });
 
         const delta = document.getElementById('out-delta');
-        delta.innerHTML = `<table style="width:100%;font-size:12px;">${results.milestoneResults.filter(m=>m.shortfall).map(m=>`<tr><td>${m.label}</td><td style="text-align:right;color:var(--color-emerald)">+₹${Math.round(m.monthlySavingsNeeded).toLocaleString()}/mo</td></tr>`).join('') || '<tr><td>All goals on track</td></tr>'}</table>`;
+        delta.innerHTML = `
+            <table style='width:100%;border-collapse:collapse;font-size:12px;'>
+                <thead><tr style='color:var(--color-text-secondary);'><th style='text-align:left;padding:4px 0;font-weight:500;'>Goal</th><th style='text-align:right;padding:4px 0;font-weight:500;'>Gap</th><th style='text-align:right;padding:4px 0;font-weight:500;'>+₹/mo</th></tr></thead>
+                <tbody>
+                    ${results.milestoneResults.filter(m=>m.shortfall).map(m=>`<tr><td style='padding:4px 0;'>${m.label}</td><td style='text-align:right;padding:4px 0;'>${formatINR(m.gap)}</td><td style='text-align:right;padding:4px 0;color:var(--color-emerald)'>₹${Math.round(m.monthlySavingsNeeded).toLocaleString()}</td></tr>`).join('') || '<tr><td colspan="3" style="text-align:center;padding:12px 0;color:var(--color-text-secondary);">All goals on track</td></tr>'}
+                </tbody>
+            </table>
+        `;
 
-        const pct = Math.min(100, (corpus / 20000000) * 100);
-        document.getElementById('out-retire-bar').style.width = pct+'%';
-        document.getElementById('out-retire-pct').textContent = `${Math.round(pct)}% of retirement goal covered`;
+        // Update Progress Bar
+        const pctFull = Math.min(100, (corpusAt60 / 20000000) * 100);
+        document.getElementById('out-retire-bar').style.width = pctFull+'%';
+        document.getElementById('out-retire-pct').textContent = `${Math.round(pctFull)}% covered`;
+        document.getElementById('out-corpus').textContent = formatINR(corpusAt60);
 
-        const tplDiv = document.getElementById('templates'); tplDiv.innerHTML = '<p class="ctrl-label">Quick Templates</p>';
-        Object.keys(window.templates).forEach(k => {
-            const btn = document.createElement('div'); btn.className = 'btn-zoom' + (window.activeTemplate===k?' active':'');
-            btn.style.display='inline-flex'; btn.style.margin='0 8px 8px 0'; btn.onclick = () => window.loadTemplate(k);
-            btn.innerHTML = `${window.templates[k].icon} ${window.templates[k].label}`;
-            tplDiv.appendChild(btn);
-        });
+        // Render Templates
+        const tplDiv = document.getElementById('template-btns');
+        if(tplDiv) {
+            tplDiv.innerHTML = '';
+            Object.keys(window.templates).forEach(key => {
+                const t = window.templates[key];
+                const active = window.activeTemplate === key;
+                const btn = document.createElement('button');
+                btn.className = 'btn-zoom';
+                btn.style.cssText = `width:100%;display:flex;align-items:center;gap:10px;padding:10px 16px;border-radius:8px;margin-bottom:4px;text-align:left;justify-content:flex-start;${active ? 'border:1px solid var(--color-emerald);background:rgba(0,211,127,0.08);color:var(--color-emerald);' : 'border:1px solid var(--color-border);background:transparent;'}`;
+                btn.innerHTML = `<span>${t.icon}</span><span>${t.label}</span>`;
+                btn.onclick = () => window.loadTemplate(key);
+                tplDiv.appendChild(btn);
+            });
+        }
+        
+        // Sync control displays
+        document.getElementById('val-savings').textContent = '₹' + s.monthlySavings.toLocaleString('en-IN');
+        document.getElementById('val-return').textContent = (s.annualReturn * 100).toFixed(1) + '%';
+        document.getElementById('val-inflrate').textContent = (s.inflationRate * 100).toFixed(1) + '% p.a.';
     };
 
     window.runAndRender = function() {
         const results = window.runSimulation();
-        window.renderTimelineChart(results); window.renderMilestoneCards(results); window.renderScenarioPanel(results);
+        window.lastResults = results;
+        window.renderTimelineChart(results);
+        window.renderMilestoneCards(results);
+        window.renderMilestoneDragList(results);
+        window.renderScenarioPanel(results);
         if(window.updateMilestoneSpheres) window.updateMilestoneSpheres(results.milestoneResults);
         window.saveState();
     };
 
     window.loadTemplate = function(k) {
         window.horizonState.milestones = JSON.parse(JSON.stringify(window.templates[k].milestones));
-        window.activeTemplate = k; window.runAndRender();
+        window.activeTemplate = k;
+        window.runAndRender();
+        window.saveState();
     };
 
     window.editMilestone = function(id) {
@@ -932,12 +1232,17 @@
 
     window.saveMilestoneEdit = function(id) {
         const m = window.horizonState.milestones.find(x=>x.id===id);
-        m.label = document.getElementById('edit-label').value; m.age = +document.getElementById('edit-age').value; m.cost = +document.getElementById('edit-cost').value;
-        document.getElementById('milestone-modal').style.display = 'none'; window.runAndRender();
+        if(!m) return;
+        m.label = document.getElementById('edit-label').value;
+        m.age = +document.getElementById('edit-age').value;
+        m.cost = +document.getElementById('edit-cost').value;
+        document.getElementById('milestone-modal').style.display = 'none';
+        window.runAndRender();
     };
 
     window.deleteMilestone = function(id) {
-        window.horizonState.milestones = window.horizonState.milestones.filter(x=>x.id!==id); window.runAndRender();
+        window.horizonState.milestones = window.horizonState.milestones.filter(x=>x.id!==id);
+        window.runAndRender();
     };
 
     window.openAddMilestone = function() {
@@ -959,10 +1264,10 @@
         document.getElementById('ctrl-networth').value = s.netWorth;
         document.getElementById('ctrl-inflation').checked = s.inflationEnabled;
         document.getElementById('ctrl-inflrate').value = s.inflationRate * 100;
+        document.getElementById('inflation-sub').style.display = s.inflationEnabled ? 'block' : 'none';
 
         window.runAndRender();
 
-        // AGENT 3 — TYPEWRITER HERO HEADLINE
         const heroH1 = document.querySelector('.hero-h1');
         const text = heroH1.innerText;
         heroH1.innerHTML = '';
@@ -987,7 +1292,6 @@
             gsap.from(sel+' h2', {opacity:0, y:30, duration:0.6, scrollTrigger:{trigger:sel, start:'top 80%'}});
         });
 
-        // AGENT 1 — LOADING SCREEN
         let progress = 0;
         const loaderInterval = setInterval(() => {
             progress += Math.random() * 15;
@@ -1004,18 +1308,63 @@
         }, 80);
     });
 
-    document.getElementById('ctrl-savings').oninput = function() { window.horizonState.monthlySavings = +this.value; document.getElementById('val-savings').textContent = (+this.value).toLocaleString('en-IN'); window.runAndRender(); };
-    document.getElementById('ctrl-return').oninput = function() { window.horizonState.annualReturn = this.value/100; document.getElementById('val-return').textContent = this.value+'%'; window.runAndRender(); };
+    document.getElementById('ctrl-age').oninput = function() { window.horizonState.currentAge = +this.value; document.getElementById('val-age').textContent = 'Age ' + this.value; window.runAndRender(); };
+    document.getElementById('ctrl-savings').oninput = function() { window.horizonState.monthlySavings = +this.value; window.runAndRender(); };
+    document.getElementById('ctrl-return').oninput = function() { window.horizonState.annualReturn = +this.value/100; window.runAndRender(); };
     document.getElementById('ctrl-networth').onchange = function() { window.horizonState.netWorth = +this.value; window.runAndRender(); };
     document.getElementById('ctrl-inflation').onchange = function() { window.horizonState.inflationEnabled = this.checked; document.getElementById('inflation-sub').style.display = this.checked?'block':'none'; window.runAndRender(); };
-    document.getElementById('ctrl-inflrate').oninput = function() { window.horizonState.inflationRate = this.value/100; document.getElementById('val-inflrate').textContent = this.value+'%'; window.runAndRender(); };
+    document.getElementById('ctrl-inflrate').oninput = function() { window.horizonState.inflationRate = +this.value/100; window.runAndRender(); };
+
+    window.exportSnapshot = function() {
+        const s = window.horizonState;
+        const results = window.lastResults;
+        if (!results) return;
+        const age60Point = results.trajectory.find(t=>t.age===60) || results.trajectory[results.trajectory.length-1];
+        const corpusAt60 = age60Point.balance;
+        const atRisk = results.milestoneResults.filter(m=>m.shortfall);
+        let html = '<html><head><meta charset="UTF-8"><style>';
+        html += 'body{font-family:system-ui;background:#050A0E;color:#F0F4F8;padding:40px;max-width:700px;margin:auto;}';
+        html += 'h1{color:#00D37F;font-size:28px;margin-bottom:4px;}';
+        html += '.card{background:#0A1628;border:1px solid rgba(0,211,127,0.15);border-radius:12px;padding:20px;margin:16px 0;}';
+        html += '.em{color:#00D37F;font-weight:600;} .amber{color:#F59E0B;font-weight:600;}';
+        html += 'table{width:100%;border-collapse:collapse;} td,th{padding:8px 0;border-bottom:1px solid rgba(255,255,255,0.06);}';
+        html += 'th{color:#8899A6;font-size:12px;text-transform:uppercase; text-align:left;}</style></head><body>';
+        html += '<h1>Horizon — My Financial Plan</h1>';
+        html += '<p style="color:#8899A6;">Generated on ' + new Date().toLocaleDateString('en-IN') + '</p>';
+        html += '<div class="card"><h3 style="margin:0 0 12px;">Parameters</h3>';
+        html += '<table><tr><td>Current Age</td><td class="em">' + s.currentAge + '</td></tr>';
+        html += '<tr><td>Monthly Savings</td><td class="em">₹' + s.monthlySavings.toLocaleString('en-IN') + '</td></tr>';
+        html += '<tr><td>Annual Return</td><td class="em">' + (s.annualReturn*100).toFixed(1) + '%</td></tr>';
+        html += '<tr><td>Starting Balance</td><td class="em">' + formatINR(s.netWorth) + '</td></tr>';
+        html += '<tr><td>Projected Corpus @ 60</td><td class="em">' + formatINR(corpusAt60) + '</td></tr></table></div>';
+        html += '<div class="card"><h3 style="margin:0 0 12px;">Milestones</h3>';
+        html += '<table><tr><th>Goal</th><th>Age</th><th>Cost</th><th>Status</th></tr>';
+        results.milestoneResults.forEach(m => {
+            html += '<tr><td>' + m.icon + ' ' + m.label + '</td><td>' + m.age + '</td><td>' + formatINR(m.cost) + '</td><td class="' + (m.shortfall?'amber':'em') + '">' + (m.shortfall?'AT RISK':'ON TRACK') + '</td></tr>';
+        });
+        html += '</table></div>';
+        if (atRisk.length > 0) {
+            html += '<div class="card"><h3 style="margin:0 0 12px;color:#F59E0B;">Action Required</h3>';
+            atRisk.forEach(m => {
+                html += '<p>To achieve <strong>' + m.label + '</strong>, save ₹' + Math.round(m.monthlySavingsNeeded).toLocaleString('en-IN') + '/month more.</p>';
+            });
+            html += '</div>';
+        }
+        html += '</body></html>';
+        const blob = new Blob([html], {type:'text/html'});
+        const a = document.createElement('a'); a.href = URL.createObjectURL(blob);
+        a.download = 'horizon-plan-' + Date.now() + '.html'; a.click(); URL.revokeObjectURL(a.href);
+    };
 
     document.querySelectorAll('.btn-zoom').forEach(btn => btn.onclick = function() {
         document.querySelectorAll('.btn-zoom').forEach(b => b.classList.remove('active')); this.classList.add('active');
         const zoom = this.dataset.zoom, svg = document.getElementById('timeline-svg');
-        let x1=0, w=3000;
-        if(zoom==='5') { x1=60+(window.horizonState.currentAge-20)/60*2880; w=300; }
-        else if(zoom==='10') { x1=60+(window.horizonState.currentAge-20)/60*2880; w=600; }
+        const SVG_W = svg.getAttribute('width');
+        const AX_START = 60; const AX_END = SVG_W - 60;
+        const ageToX = age => AX_START + ((age - 20) / 60) * (AX_END - AX_START);
+        let x1=0, w=SVG_W;
+        if(zoom==='5') { x1=Math.max(0, ageToX(window.horizonState.currentAge)-100); w=600; }
+        else if(zoom==='10') { x1=Math.max(0, ageToX(window.horizonState.currentAge)-100); w=1200; }
         gsap.to(svg, { attr:{ viewBox: `${x1} 0 ${w} 340` }, duration:0.5 });
     });
     </script>
@@ -1024,7 +1373,7 @@
     (function() {
         // 1. MAGNETIC BUTTON EFFECT
         document.addEventListener('mousemove', (e) => {
-            const btns = document.querySelectorAll('.btn-primary, .btn-zoom');
+            const btns = document.querySelectorAll('.btn-primary, .btn-zoom, #btn-export');
             btns.forEach(btn => {
                 const rect = btn.getBoundingClientRect();
                 const btnX = rect.left + rect.width / 2;
@@ -1051,10 +1400,16 @@
             gsap.to(ring, { left: e.clientX, top: e.clientY, duration: 0.12, ease: 'power2.out' });
         });
 
-        const hoverables = 'button, a, .glass-card, g, circle, input, select';
+        const hoverables = 'button, a, .glass-card, g, circle, input, select, [contenteditable]';
         document.addEventListener('mouseover', (e) => {
-            if (e.target.closest(hoverables)) {
-                gsap.to(ring, { scale: 2.2, borderColor: '#F59E0B', duration: 0.15 });
+            const target = e.target.closest(hoverables);
+            if (target) {
+                // Fix 1.2: Suppress scaling in list areas
+                if (target.closest('#template-btns, #milestone-drag-list')) {
+                    gsap.to(ring, { scale: 1, borderColor: '#00D37F', duration: 0.15 });
+                } else {
+                    gsap.to(ring, { scale: 2.2, borderColor: '#F59E0B', duration: 0.15 });
+                }
             }
         });
         document.addEventListener('mouseout', (e) => {
@@ -1112,12 +1467,8 @@
             scrollTrigger: { trigger: '#milestone-cards', start: 'top 85%' }
         });
 
-        gsap.from('#simulate > div > div:first-child', {
-            x: -40, opacity: 0, duration: 0.7, ease: 'power2.out',
-            scrollTrigger: { trigger: '#simulate', start: 'top 70%' }
-        });
-        gsap.from('#simulate > div > div:last-child', {
-            x: 40, opacity: 0, duration: 0.7, ease: 'power2.out',
+        gsap.from('#simulate > div > div', {
+            opacity: 0, y: 20, stagger: 0.1, duration: 0.7, ease: 'power2.out',
             scrollTrigger: { trigger: '#simulate', start: 'top 70%' }
         });
 
@@ -1154,9 +1505,10 @@
                 duration: 0.8,
                 onUpdate: () => {
                     const v = counter.val;
-                    document.getElementById('out-corpus').textContent = v >= 10000000 
-                        ? `₹${(v / 10000000).toFixed(2)} Cr` 
-                        : `₹${(v / 100000).toFixed(2)} L`;
+                    const el = document.getElementById('out-corpus');
+                    if(el) el.textContent = formatINR(v);
+                    const el2 = document.getElementById('sb-corpus');
+                    if(el2) el2.textContent = formatINR(v);
                 }
             });
             lastCorpus = newCorpus;
@@ -1167,7 +1519,9 @@
                 val: newPct,
                 duration: 0.8,
                 onUpdate: () => {
-                    document.getElementById('out-retire-pct').textContent = `${Math.round(pctCounter.val)}% of retirement goal covered`;
+                    const txt = `${Math.round(pctCounter.val)}% covered`;
+                    const el = document.getElementById('out-retire-pct');
+                    if(el) el.textContent = txt;
                 }
             });
             lastPct = newPct;
