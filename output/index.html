@@ -138,7 +138,7 @@
 </head>
 <body>
 
-    <!-- AGENT2:CANVAS -->
+    <canvas id="bg-canvas" style="position:fixed;top:0;left:0;width:100vw;height:100vh;z-index:-1;pointer-events:none;"></canvas>
     
     <div id="ui-layer">
         <!-- AGENT3:NAVBAR -->
@@ -155,7 +155,147 @@
     </div>
 
     <!-- Scripts and Engine Initialization -->
-    <!-- AGENT2:THREEJS -->
+    <script>
+    // 1. RENDERER + SCENE
+    const canvas = document.getElementById('bg-canvas');
+    const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true });
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    
+    const scene = new THREE.Scene();
+    const camera = new THREE.PerspectiveCamera(75, window.innerWidth/window.innerHeight, 0.1, 1000);
+    camera.position.z = 60;
+
+    const mouse = { x: 0, y: 0 };
+    const mouseTarget = { x: 0, y: 0 };
+    window.addEventListener('mousemove', (e) => {
+        mouseTarget.x = (e.clientX / window.innerWidth) * 2 - 1;
+        mouseTarget.y = -(e.clientY / window.innerHeight) * 2 + 1;
+    });
+
+    // 2. PARTICLE SYSTEM (3500 particles)
+    const particleCount = 3500;
+    const particlesGeometry = new THREE.BufferGeometry();
+    const positions = new Float32Array(particleCount * 3);
+    const velocities = new Float32Array(particleCount);
+
+    for (let i = 0; i < particleCount * 3; i += 3) {
+        positions[i] = (Math.random() - 0.5) * 200;     // x
+        positions[i+1] = (Math.random() - 0.5) * 200;   // y
+        positions[i+2] = (Math.random() - 0.5) * 200;   // z
+        velocities[i/3] = 0.01 + Math.random() * 0.02;  // vy
+    }
+
+    particlesGeometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+    const particlesMaterial = new THREE.PointsMaterial({
+        color: 0x00D37F,
+        size: 0.25,
+        transparent: true,
+        opacity: 0.5,
+        sizeAttenuation: true
+    });
+
+    const particleSystem = new THREE.Points(particlesGeometry, particlesMaterial);
+    scene.add(particleSystem);
+
+    function updateParticles() {
+        const positions = particlesGeometry.attributes.position.array;
+        for (let i = 0; i < particleCount; i++) {
+            const idx = i * 3 + 1; // y-axis
+            positions[idx] += velocities[i];
+            if (positions[idx] > 100) positions[idx] = -100;
+        }
+        particlesGeometry.attributes.position.needsUpdate = true;
+    }
+
+    // 3. WEALTH RIBBON (TubeGeometry)
+    window.netWorthAmplitude = 1.5;
+    function createWealthRibbon() {
+        const points = [];
+        for (let i = 0; i <= 20; i++) {
+            const z = 50 - (i * 5);
+            const x = Math.sin(i * 0.5) * 2;
+            const y = Math.sin(i / 3) * window.netWorthAmplitude;
+            points.push(new THREE.Vector3(x, y, z));
+        }
+        const curve = new THREE.CatmullRomCurve3(points);
+        const geometry = new THREE.TubeGeometry(curve, 100, 0.08, 8, false);
+        const material = new THREE.MeshBasicMaterial({ color: 0x00D37F, transparent: true, opacity: 0.12 });
+        const ribbon = new THREE.Mesh(geometry, material);
+        return ribbon;
+    }
+    window.wealthRibbon = createWealthRibbon();
+    scene.add(window.wealthRibbon);
+
+    // 4. MILESTONE SPHERES
+    window.milestoneSpheres = [];
+    const sphereGeo = new THREE.SphereGeometry(0.35, 16, 16);
+    
+    window.updateMilestoneSpheres = function(milestoneResults) {
+        // Remove existing
+        window.milestoneSpheres.forEach(s => scene.remove(s));
+        window.milestoneSpheres = [];
+
+        if (!milestoneResults) return;
+
+        milestoneResults.slice(0, 8).forEach(res => {
+            const mat = new THREE.MeshBasicMaterial({ 
+                color: res.ontrack ? 0x00D37F : 0xF59E0B 
+            });
+            const sphere = new THREE.Mesh(sphereGeo, mat);
+            
+            // Map age (20-80) to x (-40 to 40)
+            const x = ((res.age - 20) / 60) * 80 - 40;
+            // Map balance (approx) to y (-5 to 10)
+            const y = (res.balance / 10000000) * 15 - 5;
+            
+            sphere.position.set(x, y, 0);
+            scene.add(sphere);
+            window.milestoneSpheres.push(sphere);
+        });
+    };
+
+    // 5. CAMERA & ANIMATION
+    const clock = new THREE.Clock();
+    
+    // 6. GSAP SCROLL
+    gsap.registerPlugin(ScrollTrigger);
+    gsap.to(camera.position, {
+        z: 25,
+        scrollTrigger: {
+            trigger: "body",
+            start: "top top",
+            end: "bottom bottom",
+            scrub: true
+        }
+    });
+
+    // 7. RESIZE HANDLER
+    window.addEventListener('resize', () => {
+        camera.aspect = window.innerWidth / window.innerHeight;
+        camera.updateProjectionMatrix();
+        renderer.setSize(window.innerWidth, window.innerHeight);
+    });
+
+    // 8. ANIMATION LOOP
+    function animate() {
+        requestAnimationFrame(animate);
+        const t = clock.getElapsedTime();
+        
+        updateParticles();
+        
+        // Mouse lerp & Idle sway
+        mouse.x += (mouseTarget.x - mouse.x) * 0.05;
+        mouse.y += (mouseTarget.y - mouse.y) * 0.05;
+        
+        camera.position.x += (mouse.x * 2 - camera.position.x) * 0.05;
+        camera.position.y += (mouse.y * 1 - camera.position.y) * 0.05;
+        camera.lookAt(0, 0, 0);
+        
+        renderer.render(scene, camera);
+    }
+    animate();
+</script>
     <!-- AGENT1:ENGINE -->
     <!-- AGENT3:WIRING -->
 
