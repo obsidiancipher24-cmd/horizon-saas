@@ -204,6 +204,31 @@
             color: var(--color-text-secondary); 
             opacity: 0.6; 
         }
+
+        .btn-zoom { 
+            background: transparent; 
+            border: 1px solid var(--color-border); 
+            color: var(--color-text-secondary); 
+            padding: 8px 20px; 
+            border-radius: 20px; 
+            cursor: pointer; 
+            font-size: 13px; 
+            transition: all 0.2s; 
+        }
+        .btn-zoom.active, .btn-zoom:hover { 
+            border-color: var(--color-emerald); 
+            color: var(--color-emerald); 
+        }
+        #timeline-scroll::-webkit-scrollbar { 
+            height: 4px; 
+        }
+        #timeline-scroll::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        #timeline-scroll::-webkit-scrollbar-thumb { 
+            background: var(--color-emerald); 
+            border-radius: 2px; 
+        }
     </style>
 </head>
 <body>
@@ -232,12 +257,109 @@
           </div>
         </section>
             
-            <!-- AGENT3:TIMELINE -->
+        <section id='timeline' style='min-height:100vh;padding:80px 5vw;'>
+          <p class='section-label'>Your Timeline</p>
+          <h2 style='font-family:Cal Sans,sans-serif;font-size:clamp(32px,4vw,48px);margin:8px 0 8px;'>Drag milestones. Watch the math.</h2>
+          <p style='color:var(--color-text-secondary);margin-bottom:32px;'>Age 20 to 80 — your entire financial life on one axis.</p>
+          <div style='display:flex;gap:12px;margin-bottom:24px;'>
+            <button class='zoom-btn btn-zoom' data-zoom='5'>5 Year</button>
+            <button class='zoom-btn btn-zoom' data-zoom='10'>10 Year</button>
+            <button class='zoom-btn btn-zoom active' data-zoom='full'>Full Life</button>
+          </div>
+          <div id='timeline-scroll' style='overflow-x:auto;overflow-y:visible;padding-bottom:16px;'>
+            <svg id='timeline-svg' width='3000' height='340' style='display:block;'></svg>
+          </div>
+          <div id='milestone-cards' style='display:flex;flex-wrap:wrap;gap:16px;margin-top:32px;'></div>
+          <button onclick='window.openAddMilestone()' style='margin-top:16px;background:transparent;border:1px solid var(--color-border);color:var(--color-emerald);padding:10px 24px;border-radius:8px;cursor:pointer;font-size:14px;'>+ Add Milestone</button>
+        </section>
+        <div id='milestone-modal' style='display:none;position:fixed;inset:0;z-index:200;background:rgba(0,0,0,0.7);backdrop-filter:blur(8px);align-items:center;justify-content:center;'></div>
             
-            <!-- AGENT3:PANEL -->
+        <section id='simulate' style='padding:80px 5vw; background:rgba(0,0,0,0.2);'>
+          <div style='display:grid; grid-template-columns: 1fr 1fr; gap:40px; align-items:start;'>
+            <div>
+              <p class='section-label'>Simulation Controls</p>
+              <h2 style='font-family:Cal Sans,sans-serif;font-size:36px;margin:8px 0 24px;'>Adjust your reality.</h2>
+              
+              <div class='glass-card' style='display:flex; flex-direction:column; gap:24px;'>
+                <div>
+                    <div style="display:flex; justify-content:space-between; margin-bottom:8px;">
+                        <label style="font-size:14px; color:var(--color-text-secondary);">Monthly Savings</label>
+                        <span id="val-savings" style="color:var(--color-emerald); font-weight:600;">₹25,000</span>
+                    </div>
+                    <input type="range" id="input-savings" min="5000" max="500000" step="5000" value="25000" style="width:100%; accent-color:var(--color-emerald);">
+                </div>
+
+                <div>
+                    <div style="display:flex; justify-content:space-between; margin-bottom:8px;">
+                        <label style="font-size:14px; color:var(--color-text-secondary);">Expected Annual Return (%)</label>
+                        <span id="val-return" style="color:var(--color-emerald); font-weight:600;">10%</span>
+                    </div>
+                    <input type="range" id="input-return" min="1" max="30" step="0.5" value="10" style="width:100%; accent-color:var(--color-emerald);">
+                </div>
+
+                <div style="display:flex; align-items:center; justify-content:space-between; padding:12px; border:1px solid var(--color-border); border-radius:8px;">
+                    <div>
+                        <p style="margin:0; font-size:14px; font-weight:600;">Enable Inflation (6%)</p>
+                        <p style="margin:0; font-size:12px; color:var(--color-text-secondary);">Adjusts future costs of goals</p>
+                    </div>
+                    <input type="checkbox" id="input-inflation" style="width:20px; height:20px; cursor:pointer;">
+                </div>
+              </div>
+            </div>
+
+            <div>
+              <p class='section-label'>Summary</p>
+              <div id="scenario-summary" class="glass-card" style="min-height:300px; display:flex; flex-direction:column; justify-content:center; gap:24px;">
+                <!-- Dynamically Rendered -->
+              </div>
+              
+              <div id="templates" style="margin-top:32px;">
+                <p class='section-label' style="margin-bottom:12px;">Quick Start Templates</p>
+                <div style="display:flex; gap:8px;">
+                    <button onclick="window.loadTemplate('aditya')" class="btn-zoom">🎨 Creative</button>
+                    <button onclick="window.loadTemplate('conservative')" class="btn-zoom">🏦 Conservative</button>
+                    <button onclick="window.loadTemplate('aggressive')" class="btn-zoom">🚀 Aggressive</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
         </main>
 
-        <!-- AGENT3:FOOTER -->
+    <footer style='padding:80px 5vw; border-top:1px solid var(--color-border); background:var(--color-bg);'>
+        <div style='display:flex; justify-content:space-between; align-items:start; flex-wrap:wrap; gap:40px;'>
+            <div style='max-width:300px;'>
+                <div class='nav-logo' style='margin-bottom:16px;'>Horizon</div>
+                <p style='color:var(--color-text-secondary); font-size:14px; line-height:1.6;'>
+                    Visualizing financial independence through interactive 3D simulations. Built for the next generation of wealth creators.
+                </p>
+            </div>
+            
+            <div style='display:flex; gap:80px;'>
+                <div>
+                    <p class='section-label' style='margin-bottom:16px;'>Product</p>
+                    <ul style='list-style:none; padding:0; margin:0; display:flex; flex-direction:column; gap:12px;'>
+                        <li><a href='#timeline' style='color:var(--color-text-secondary); text-decoration:none; font-size:14px;'>Timeline</a></li>
+                        <li><a href='#simulate' style='color:var(--color-text-secondary); text-decoration:none; font-size:14px;'>Simulator</a></li>
+                        <li><a href='#' style='color:var(--color-text-secondary); text-decoration:none; font-size:14px;'>Templates</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <p class='section-label' style='margin-bottom:16px;'>Company</p>
+                    <ul style='list-style:none; padding:0; margin:0; display:flex; flex-direction:column; gap:12px;'>
+                        <li><a href='#' style='color:var(--color-text-secondary); text-decoration:none; font-size:14px;'>About</a></li>
+                        <li><a href='#' style='color:var(--color-text-secondary); text-decoration:none; font-size:14px;'>Privacy</a></li>
+                        <li><a href='#' style='color:var(--color-text-secondary); text-decoration:none; font-size:14px;'>Terms</a></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+        
+        <div style='margin-top:80px; padding-top:24px; border-top:1px solid rgba(255,255,255,0.05); display:flex; justify-content:space-between; color:var(--color-text-secondary); font-size:12px;'>
+            <span>© 2026 Horizon Wealth Technologies</span>
+            <span>Made with ✨ by Gemini CLI Team</span>
+        </div>
+    </footer>
     </div>
 
     <!-- Scripts and Engine Initialization -->
@@ -511,6 +633,342 @@
     };
     </script>
     <!-- AGENT3:WIRING -->
+    <script>
+    window.renderTimelineChart = function(results) {
+        const svg = document.getElementById('timeline-svg');
+        svg.innerHTML = '';
+        const maxBalance = Math.max(...results.trajectory.map(t => t.balance), 1000000);
+        
+        // Axis Line
+        const axis = document.createElementNS("http://www.w3.org/2000/svg", "line");
+        axis.setAttribute("x1", 60); axis.setAttribute("y1", 240);
+        axis.setAttribute("x2", 2940); axis.setAttribute("y2", 240);
+        axis.setAttribute("stroke", "#8899A6"); axis.setAttribute("stroke-width", "1");
+        svg.appendChild(axis);
+
+        // Age Ticks
+        for (let age = 20; age <= 80; age += 5) {
+            const x = 60 + (age - 20) / 60 * 2880;
+            const tick = document.createElementNS("http://www.w3.org/2000/svg", "line");
+            tick.setAttribute("x1", x); tick.setAttribute("y1", 240);
+            tick.setAttribute("x2", x); tick.setAttribute("y2", 255);
+            tick.setAttribute("stroke", "#8899A6");
+            svg.appendChild(tick);
+
+            const text = document.createElementNS("http://www.w3.org/2000/svg", "text");
+            text.setAttribute("x", x); text.setAttribute("y", 275);
+            text.setAttribute("text-anchor", "middle");
+            text.setAttribute("fill", "#8899A6");
+            text.setAttribute("font-size", "13");
+            text.textContent = age;
+            svg.appendChild(text);
+        }
+
+        // Trajectory Polyline
+        let points = results.trajectory.map(t => {
+            const x = 60 + (t.age - 20) / 60 * 2880;
+            const y = 240 - (t.balance / maxBalance) * 200;
+            return `${x},${Math.max(20, y)}`;
+        }).join(' ');
+
+        const polyline = document.createElementNS("http://www.w3.org/2000/svg", "polyline");
+        polyline.setAttribute("points", points);
+        polyline.setAttribute("stroke", "#00D37F");
+        polyline.setAttribute("stroke-width", "2");
+        polyline.setAttribute("fill", "none");
+        svg.appendChild(polyline);
+
+        const area = document.createElementNS("http://www.w3.org/2000/svg", "polygon");
+        area.setAttribute("points", `60,240 ${points} 2940,240`);
+        area.setAttribute("fill", "rgba(0,211,127,0.07)");
+        svg.appendChild(area);
+
+        // Milestones
+        results.milestoneResults.forEach((m, i) => {
+            const mx = 60 + (m.age - 20) / 60 * 2880;
+            
+            const line = document.createElementNS("http://www.w3.org/2000/svg", "line");
+            line.setAttribute("x1", mx); line.setAttribute("y1", 40);
+            line.setAttribute("x2", mx); line.setAttribute("y2", 240);
+            line.setAttribute("stroke", "#8899A6");
+            line.setAttribute("stroke-dasharray", "4");
+            line.setAttribute("opacity", "0.3");
+            svg.appendChild(line);
+
+            const group = document.createElementNS("http://www.w3.org/2000/svg", "g");
+            group.style.cursor = 'grab';
+            
+            const circle = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+            circle.setAttribute("cx", mx); circle.setAttribute("cy", 240);
+            circle.setAttribute("r", 14);
+            circle.setAttribute("fill", "#050A0E");
+            circle.setAttribute("stroke", m.shortfall ? "#F59E0B" : "#00D37F");
+            circle.setAttribute("stroke-width", "2");
+            group.appendChild(circle);
+
+            const icon = document.createElementNS("http://www.w3.org/2000/svg", "text");
+            icon.setAttribute("x", mx); icon.setAttribute("y", 245);
+            icon.setAttribute("text-anchor", "middle");
+            icon.setAttribute("font-size", "13");
+            icon.textContent = m.icon;
+            group.appendChild(icon);
+
+            const label = document.createElementNS("http://www.w3.org/2000/svg", "text");
+            label.setAttribute("x", mx); label.setAttribute("y", 210);
+            label.setAttribute("text-anchor", "middle");
+            label.setAttribute("fill", "#F0F4F8");
+            label.setAttribute("font-size", "12");
+            label.textContent = m.label;
+            svg.appendChild(label);
+
+            if (m.shortfall) {
+                const warn = document.createElementNS("http://www.w3.org/2000/svg", "text");
+                warn.setAttribute("x", mx); warn.setAttribute("y", 190);
+                warn.setAttribute("text-anchor", "middle");
+                warn.setAttribute("fill", "#F59E0B");
+                warn.textContent = '⚠️';
+                svg.appendChild(warn);
+            }
+
+            // Dragging Logic
+            const onDrag = (e) => {
+                const pt = svg.createSVGPoint();
+                pt.x = e.clientX || e.touches[0].clientX;
+                const svgP = pt.matrixTransform(svg.getScreenCTM().inverse());
+                const newX = Math.max(60, Math.min(2940, svgP.x));
+                const newAge = Math.round(20 + (newX - 60) / 2880 * 60);
+                window.horizonState.milestones.find(ms => ms.id === m.id).age = newAge;
+                window.runAndRender();
+            };
+
+            const endDrag = () => {
+                document.removeEventListener('mousemove', onDrag);
+                document.removeEventListener('mouseup', endDrag);
+                document.removeEventListener('touchmove', onDrag);
+                document.removeEventListener('touchend', endDrag);
+            };
+
+            group.addEventListener('mousedown', () => {
+                document.addEventListener('mousemove', onDrag);
+                document.addEventListener('mouseup', endDrag);
+            });
+            group.addEventListener('touchstart', (e) => {
+                e.preventDefault();
+                document.addEventListener('touchmove', onDrag);
+                document.addEventListener('touchend', endDrag);
+            });
+
+            svg.appendChild(group);
+        });
+    };
+
+    window.renderMilestoneCards = function(results) {
+        const container = document.getElementById('milestone-cards');
+        container.innerHTML = '';
+
+        results.milestoneResults.forEach(m => {
+            const card = document.createElement('div');
+            card.className = 'glass-card';
+            card.style.width = 'calc(33% - 11px)';
+            card.style.minWidth = '300px';
+
+            const costStr = m.cost >= 10000000 
+                ? `₹${(m.cost / 10000000).toFixed(2)} Crores` 
+                : `₹${(m.cost / 100000).toFixed(2)} Lakhs`;
+
+            card.innerHTML = `
+                <div style="display:flex; justify-content:space-between; align-items:start; margin-bottom:12px;">
+                    <div style="display:flex; align-items:center; gap:8px;">
+                        <span style="font-size:24px;">${m.icon}</span>
+                        <h3 style="margin:0; font-family:Cal Sans; font-size:18px;">${m.label}</h3>
+                    </div>
+                    <span class="badge-ontrack" style="text-transform:uppercase; font-size:10px;">${m.category}</span>
+                </div>
+                <div style="margin-bottom:16px;">
+                    <p style="margin:4px 0; color:var(--color-text-secondary); font-size:14px;">Target Age: <span style="color:var(--color-text-primary)">${m.age}</span></p>
+                    <p style="margin:4px 0; color:var(--color-text-secondary); font-size:14px;">Estimated Cost: <span style="color:var(--color-text-primary)">${costStr}</span></p>
+                </div>
+                <div style="margin-bottom:16px;">
+                    <span class="${m.shortfall ? 'badge-atrisk' : 'badge-ontrack'}">${m.shortfall ? 'AT RISK' : 'ON TRACK'}</span>
+                </div>
+                ${m.shortfall ? `
+                    <p style="color:var(--color-amber); font-size:12px; line-height:1.5;">
+                        Short by ₹${(m.gap / 100000).toFixed(2)} Lakhs. Save ₹${Math.round(m.monthlySavingsNeeded).toLocaleString()}/mo more to bridge this.
+                    </p>
+                ` : ''}
+                <div style="display:flex; gap:8px; margin-top:16px;">
+                    <button onclick="window.deleteMilestone(${m.id})" style="background:transparent; border:1px solid rgba(255,0,0,0.2); color:#ff4444; padding:6px 12px; border-radius:4px; cursor:pointer; font-size:12px;">Delete</button>
+                </div>
+            `;
+            container.appendChild(card);
+        });
+    };
+
+    window.deleteMilestone = function(id) {
+        window.horizonState.milestones = window.horizonState.milestones.filter(m => m.id !== id);
+        window.runAndRender();
+    };
+
+    window.openAddMilestone = function() {
+        const modal = document.getElementById('milestone-modal');
+        modal.style.display = 'flex';
+        modal.innerHTML = `
+            <div class="glass-card" style="width:400px;">
+                <h3 style="font-family:Cal Sans; margin-top:0;">Add Life Goal</h3>
+                <div style="display:flex; flex-direction:column; gap:16px;">
+                    <div>
+                        <label style="display:block; font-size:12px; color:var(--color-text-secondary); margin-bottom:4px;">Label</label>
+                        <input type="text" id="m-label" placeholder="e.g. World Tour" style="width:100%; background:rgba(255,255,255,0.05); border:1px solid var(--color-border); padding:10px; color:white; border-radius:4px;">
+                    </div>
+                    <div style="display:flex; gap:12px;">
+                        <div style="flex:1;">
+                            <label style="display:block; font-size:12px; color:var(--color-text-secondary); margin-bottom:4px;">Target Age</label>
+                            <input type="number" id="m-age" value="35" style="width:100%; background:rgba(255,255,255,0.05); border:1px solid var(--color-border); padding:10px; color:white; border-radius:4px;">
+                        </div>
+                        <div style="flex:1;">
+                            <label style="display:block; font-size:12px; color:var(--color-text-secondary); margin-bottom:4px;">Cost (Lakhs)</label>
+                            <input type="number" id="m-cost" value="10" style="width:100%; background:rgba(255,255,255,0.05); border:1px solid var(--color-border); padding:10px; color:white; border-radius:4px;">
+                        </div>
+                    </div>
+                    <div>
+                        <label style="display:block; font-size:12px; color:var(--color-text-secondary); margin-bottom:4px;">Category</label>
+                        <select id="m-category" style="width:100%; background:rgba(0,0,0,0.3); border:1px solid var(--color-border); padding:10px; color:white; border-radius:4px;">
+                            <option value="home">Home</option>
+                            <option value="business">Business</option>
+                            <option value="education">Education</option>
+                            <option value="vehicle">Vehicle</option>
+                            <option value="savings">Savings</option>
+                            <option value="retirement">Retirement</option>
+                            <option value="other">Other</option>
+                        </select>
+                    </div>
+                    <div style="display:flex; gap:12px; margin-top:8px;">
+                        <button onclick="window.submitMilestone()" class="btn-primary" style="flex:2;">Add Goal</button>
+                        <button onclick="document.getElementById('milestone-modal').style.display='none'" style="flex:1; background:transparent; border:1px solid var(--color-border); color:white; border-radius:8px; cursor:pointer;">Cancel</button>
+                    </div>
+                </div>
+            </div>
+        `;
+    };
+
+    window.submitMilestone = function() {
+        const categoryIcons = { home:'🏠', business:'💼', education:'🎓', vehicle:'🚗', savings:'🏦', retirement:'🌅', other:'🎯' };
+        const label = document.getElementById('m-label').value || 'New Goal';
+        const age = parseInt(document.getElementById('m-age').value);
+        const cost = parseInt(document.getElementById('m-cost').value) * 100000;
+        const category = document.getElementById('m-category').value;
+        
+        window.horizonState.milestones.push({
+            id: Date.now(),
+            label, age, cost, category,
+            icon: categoryIcons[category] || '🎯'
+        });
+        
+        document.getElementById('milestone-modal').style.display = 'none';
+        window.runAndRender();
+    };
+
+    // Zoom Logic
+    document.querySelectorAll('.btn-zoom').forEach(btn => btn.addEventListener('click', function() {
+        document.querySelectorAll('.btn-zoom').forEach(b => b.classList.remove('active'));
+        this.classList.add('active');
+        const zoom = this.dataset.zoom;
+        const svg = document.getElementById('timeline-svg');
+        const currentAge = window.horizonState.currentAge;
+        
+        let xStart = 0, xEnd = 3000;
+        if (zoom === '5') {
+            const startAge = Math.max(20, currentAge - 1);
+            const endAge = Math.min(80, currentAge + 5);
+            xStart = 60 + (startAge - 20) / 60 * 2880;
+            xEnd = 60 + (endAge - 20) / 60 * 2880;
+        } else if (zoom === '10') {
+            const startAge = Math.max(20, currentAge - 1);
+            const endAge = Math.min(80, currentAge + 10);
+            xStart = 60 + (startAge - 20) / 60 * 2880;
+            xEnd = 60 + (endAge - 20) / 60 * 2880;
+        }
+
+        const width = xEnd - xStart;
+        const currentVB = svg.getAttribute('viewBox') || '0 0 3000 340';
+        const [currX, currY, currW, currH] = currentVB.split(' ').map(Number);
+
+        gsap.to({ x: currX, w: currW }, {
+            x: xStart,
+            w: width,
+            duration: 0.6,
+            ease: "power2.inOut",
+            onUpdate: function() {
+                svg.setAttribute('viewBox', `${this.targets()[0].x} 0 ${this.targets()[0].w} 340`);
+            }
+        });
+    }));
+
+    window.renderScenarioPanel = function(results) {
+        const s = window.horizonState;
+        
+        // Update UI displays
+        document.getElementById('val-savings').textContent = `₹${s.monthlySavings.toLocaleString()}`;
+        document.getElementById('val-return').textContent = `${(s.annualReturn * 100).toFixed(1)}%`;
+        document.getElementById('input-savings').value = s.monthlySavings;
+        document.getElementById('input-return').value = s.annualReturn * 100;
+        document.getElementById('input-inflation').checked = s.inflationEnabled;
+
+        const summary = document.getElementById('scenario-summary');
+        const onTrackCount = results.milestoneResults.filter(m => !m.shortfall).length;
+        const totalCount = results.milestoneResults.length;
+        const netWorth80 = results.trajectory[results.trajectory.length - 1].balance;
+
+        summary.innerHTML = `
+            <div>
+                <p class="section-label" style="margin-bottom:4px;">Goal Completion</p>
+                <div style="display:flex; align-items:baseline; gap:8px;">
+                    <h3 style="margin:0; font-family:Cal Sans; font-size:42px; color:var(--color-emerald);">${onTrackCount}/${totalCount}</h3>
+                    <p style="margin:0; color:var(--color-text-secondary);">milestones on track</p>
+                </div>
+            </div>
+            
+            <div style="height:1px; background:var(--color-border);"></div>
+
+            <div>
+                <p class="section-label" style="margin-bottom:4px;">Net Worth at Age 80</p>
+                <h3 style="margin:0; font-family:Cal Sans; font-size:32px;">₹${(netWorth80 / 10000000).toFixed(2)} Crores</h3>
+                <p style="margin:4px 0 0; font-size:12px; color:var(--color-text-secondary);">
+                    ${s.inflationEnabled ? 'Adjusted for inflation' : 'Future value (non-adjusted)'}
+                </p>
+            </div>
+
+            <div style="margin-top:8px;">
+                ${onTrackCount === totalCount 
+                    ? '<p style="color:var(--color-emerald); font-size:14px; margin:0;">✨ Perfect! Your current plan covers all life goals.</p>'
+                    : `<p style="color:var(--color-amber); font-size:14px; margin:0;">⚠️ You have a shortfall of ₹${(results.milestoneResults.reduce((acc, m) => acc + m.gap, 0) / 100000).toFixed(2)} Lakhs across goals.</p>`
+                }
+            </div>
+        `;
+    };
+
+    // Wiring Controls
+    document.getElementById('input-savings').addEventListener('input', (e) => {
+        window.horizonState.monthlySavings = parseInt(e.target.value);
+        window.runAndRender();
+    });
+
+    document.getElementById('input-return').addEventListener('input', (e) => {
+        window.horizonState.annualReturn = parseFloat(e.target.value) / 100;
+        window.runAndRender();
+    });
+
+    document.getElementById('input-inflation').addEventListener('change', (e) => {
+        window.horizonState.inflationEnabled = e.target.checked;
+        window.runAndRender();
+    });
+
+    // Initial Trigger
+    window.addEventListener('load', () => {
+        window.loadState();
+        window.runAndRender();
+    });
+    </script>
 
 </body>
 </html>
