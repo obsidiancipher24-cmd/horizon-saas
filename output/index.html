@@ -229,6 +229,18 @@
             background: var(--color-emerald); 
             border-radius: 2px; 
         }
+
+        .ctrl-label { font-size:13px;color:var(--color-text-secondary);margin-bottom:8px;display:block;font-weight:500; }
+        .ctrl-row { display:flex;align-items:center;gap:10px; }
+        .ctrl-prefix { color:var(--color-text-secondary);font-size:14px; }
+        .ctrl-val { font-size:14px;font-weight:500;color:var(--color-emerald);min-width:80px;text-align:right; }
+        input[type=range] { flex:1;accent-color:var(--color-emerald);height:4px; }
+        .toggle-switch { position:relative;display:inline-block;width:44px;height:24px; }
+        .toggle-switch input { opacity:0;width:0;height:0; }
+        .toggle-slider { position:absolute;inset:0;background:rgba(255,255,255,0.1);border-radius:24px;cursor:pointer;transition:0.3s; }
+        .toggle-slider:before { content:'';position:absolute;width:18px;height:18px;left:3px;top:3px;background:white;border-radius:50%;transition:0.3s; }
+        .toggle-switch input:checked + .toggle-slider { background:var(--color-emerald); }
+        .toggle-switch input:checked + .toggle-slider:before { transform:translateX(20px); }
     </style>
 </head>
 <body>
@@ -274,52 +286,52 @@
         </section>
         <div id='milestone-modal' style='display:none;position:fixed;inset:0;z-index:200;background:rgba(0,0,0,0.7);backdrop-filter:blur(8px);align-items:center;justify-content:center;'></div>
             
-        <section id='simulate' style='padding:80px 5vw; background:rgba(0,0,0,0.2);'>
-          <div style='display:grid; grid-template-columns: 1fr 1fr; gap:40px; align-items:start;'>
-            <div>
-              <p class='section-label'>Simulation Controls</p>
-              <h2 style='font-family:Cal Sans,sans-serif;font-size:36px;margin:8px 0 24px;'>Adjust your reality.</h2>
-              
-              <div class='glass-card' style='display:flex; flex-direction:column; gap:24px;'>
-                <div>
-                    <div style="display:flex; justify-content:space-between; margin-bottom:8px;">
-                        <label style="font-size:14px; color:var(--color-text-secondary);">Monthly Savings</label>
-                        <span id="val-savings" style="color:var(--color-emerald); font-weight:600;">₹25,000</span>
-                    </div>
-                    <input type="range" id="input-savings" min="5000" max="500000" step="5000" value="25000" style="width:100%; accent-color:var(--color-emerald);">
-                </div>
+        <section id='simulate' style='min-height:100vh;padding:80px 5vw;'>
+          <p class='section-label'>What-If Scenarios</p>
+          <h2 style='font-family:Cal Sans,sans-serif;font-size:clamp(32px,4vw,48px);margin:8px 0 40px;'>Adjust the variables.<br>Own the outcome.</h2>
+          <div style='display:grid;grid-template-columns:1fr 1fr;gap:40px;align-items:start;'>
 
-                <div>
-                    <div style="display:flex; justify-content:space-between; margin-bottom:8px;">
-                        <label style="font-size:14px; color:var(--color-text-secondary);">Expected Annual Return (%)</label>
-                        <span id="val-return" style="color:var(--color-emerald); font-weight:600;">10%</span>
-                    </div>
-                    <input type="range" id="input-return" min="1" max="30" step="0.5" value="10" style="width:100%; accent-color:var(--color-emerald);">
+            <div class='glass-card' style='display:flex;flex-direction:column;gap:28px;'>
+              <div class='control-group'>
+                <label class='ctrl-label'>Monthly Savings</label>
+                <div class='ctrl-row'><span class='ctrl-prefix'>₹</span><input type='range' id='ctrl-savings' min='5000' max='100000' step='1000' value='25000'><span id='val-savings' class='ctrl-val'>25,000</span></div>
+              </div>
+              <div class='control-group'>
+                <label class='ctrl-label'>Annual Return</label>
+                <div class='ctrl-row'><input type='range' id='ctrl-return' min='4' max='20' step='0.5' value='10'><span id='val-return' class='ctrl-val'>10.0%</span></div>
+              </div>
+              <div class='control-group'>
+                <label class='ctrl-label'>Starting Balance</label>
+                <div class='ctrl-row'><span class='ctrl-prefix'>₹</span><input type='number' id='ctrl-networth' value='500000' style='flex:1;background:transparent;border:1px solid var(--color-border);border-radius:8px;color:var(--color-text-primary);padding:8px 12px;font-size:14px;'></div>
+              </div>
+              <div class='control-group'>
+                <label class='ctrl-label' style='display:flex;align-items:center;justify-content:space-between;'>
+                  Inflation Adjustment
+                  <label class='toggle-switch'><input type='checkbox' id='ctrl-inflation'><span class='toggle-slider'></span></label>
+                </label>
+                <div id='inflation-sub' style='display:none;margin-top:12px;'>
+                  <div class='ctrl-row'><input type='range' id='ctrl-inflrate' min='3' max='12' step='0.5' value='6'><span id='val-inflrate' class='ctrl-val'>6.0% p.a.</span></div>
                 </div>
-
-                <div style="display:flex; align-items:center; justify-content:space-between; padding:12px; border:1px solid var(--color-border); border-radius:8px;">
-                    <div>
-                        <p style="margin:0; font-size:14px; font-weight:600;">Enable Inflation (6%)</p>
-                        <p style="margin:0; font-size:12px; color:var(--color-text-secondary);">Adjusts future costs of goals</p>
-                    </div>
-                    <input type="checkbox" id="input-inflation" style="width:20px; height:20px; cursor:pointer;">
-                </div>
+              </div>
+              <div id='templates' style='display:flex;flex-direction:column;gap:10px;'>
+                <p class='ctrl-label'>Templates</p>
               </div>
             </div>
 
-            <div>
-              <p class='section-label'>Summary</p>
-              <div id="scenario-summary" class="glass-card" style="min-height:300px; display:flex; flex-direction:column; justify-content:center; gap:24px;">
-                <!-- Dynamically Rendered -->
+            <div style='display:flex;flex-direction:column;gap:16px;'>
+              <div class='glass-card'>
+                <p style='font-size:12px;color:var(--color-text-secondary);margin-bottom:4px;'>Projected corpus at age 60</p>
+                <p id='out-corpus' style='font-family:Cal Sans,sans-serif;font-size:40px;color:var(--color-emerald);'>₹0</p>
+                <p style='font-size:12px;color:var(--color-text-secondary);'>at your current savings rate</p>
               </div>
-              
-              <div id="templates" style="margin-top:32px;">
-                <p class='section-label' style="margin-bottom:12px;">Quick Start Templates</p>
-                <div style="display:flex; gap:8px;">
-                    <button onclick="window.loadTemplate('aditya')" class="btn-zoom">🎨 Creative</button>
-                    <button onclick="window.loadTemplate('conservative')" class="btn-zoom">🏦 Conservative</button>
-                    <button onclick="window.loadTemplate('aggressive')" class="btn-zoom">🚀 Aggressive</button>
+              <div class='glass-card' id='out-feasibility'></div>
+              <div class='glass-card' id='out-delta'></div>
+              <div class='glass-card'>
+                <p style='font-size:13px;color:var(--color-text-secondary);margin-bottom:8px;'>Retirement readiness</p>
+                <div style='background:rgba(255,255,255,0.08);border-radius:8px;height:8px;overflow:hidden;'>
+                  <div id='out-retire-bar' style='height:100%;background:var(--color-emerald);border-radius:8px;width:0%;transition:width 0.5s ease;'></div>
                 </div>
+                <p id='out-retire-pct' style='font-size:13px;margin-top:8px;color:var(--color-text-secondary);'>0% of retirement goal covered</p>
               </div>
             </div>
           </div>
@@ -907,59 +919,99 @@
     window.renderScenarioPanel = function(results) {
         const s = window.horizonState;
         
-        // Update UI displays
-        document.getElementById('val-savings').textContent = `₹${s.monthlySavings.toLocaleString()}`;
-        document.getElementById('val-return').textContent = `${(s.annualReturn * 100).toFixed(1)}%`;
-        document.getElementById('input-savings').value = s.monthlySavings;
-        document.getElementById('input-return').value = s.annualReturn * 100;
-        document.getElementById('input-inflation').checked = s.inflationEnabled;
+        // 1. Update Corpus at Age 60
+        const age60Point = results.trajectory.find(t => t.age === 60) || results.trajectory[results.trajectory.length - 1];
+        const corpus = age60Point.balance;
+        const corpusStr = corpus >= 10000000 
+            ? `₹${(corpus / 10000000).toFixed(2)} Cr` 
+            : `₹${(corpus / 100000).toFixed(2)} L`;
+        document.getElementById('out-corpus').textContent = corpusStr;
 
-        const summary = document.getElementById('scenario-summary');
-        const onTrackCount = results.milestoneResults.filter(m => !m.shortfall).length;
-        const totalCount = results.milestoneResults.length;
-        const netWorth80 = results.trajectory[results.trajectory.length - 1].balance;
-
-        summary.innerHTML = `
-            <div>
-                <p class="section-label" style="margin-bottom:4px;">Goal Completion</p>
-                <div style="display:flex; align-items:baseline; gap:8px;">
-                    <h3 style="margin:0; font-family:Cal Sans; font-size:42px; color:var(--color-emerald);">${onTrackCount}/${totalCount}</h3>
-                    <p style="margin:0; color:var(--color-text-secondary);">milestones on track</p>
+        // 2. Render Feasibility
+        const feas = document.getElementById('out-feasibility');
+        feas.innerHTML = '<p class="ctrl-label">Goal Feasibility</p>';
+        results.milestoneResults.slice(0, 4).forEach(m => {
+            const row = document.createElement('div');
+            row.style.display = 'flex'; row.style.justifyContent = 'space-between'; row.style.alignItems = 'center'; row.style.marginBottom = '8px';
+            row.innerHTML = `
+                <span style="font-size:13px;color:var(--color-text-primary)">${m.icon} ${m.label}</span>
+                <div style="text-align:right">
+                    <span class="${m.shortfall ? 'badge-atrisk' : 'badge-ontrack'}" style="font-size:10px;">${m.shortfall ? 'AT RISK' : 'ON TRACK'}</span>
+                    ${m.shortfall ? `<p style="margin:2px 0 0;font-size:11px;color:var(--color-amber)">+₹${Math.round(m.monthlySavingsNeeded).toLocaleString()}/mo</p>` : ''}
                 </div>
-            </div>
-            
-            <div style="height:1px; background:var(--color-border);"></div>
+            `;
+            feas.appendChild(row);
+        });
 
-            <div>
-                <p class="section-label" style="margin-bottom:4px;">Net Worth at Age 80</p>
-                <h3 style="margin:0; font-family:Cal Sans; font-size:32px;">₹${(netWorth80 / 10000000).toFixed(2)} Crores</h3>
-                <p style="margin:4px 0 0; font-size:12px; color:var(--color-text-secondary);">
-                    ${s.inflationEnabled ? 'Adjusted for inflation' : 'Future value (non-adjusted)'}
-                </p>
-            </div>
-
-            <div style="margin-top:8px;">
-                ${onTrackCount === totalCount 
-                    ? '<p style="color:var(--color-emerald); font-size:14px; margin:0;">✨ Perfect! Your current plan covers all life goals.</p>'
-                    : `<p style="color:var(--color-amber); font-size:14px; margin:0;">⚠️ You have a shortfall of ₹${(results.milestoneResults.reduce((acc, m) => acc + m.gap, 0) / 100000).toFixed(2)} Lakhs across goals.</p>`
-                }
-            </div>
+        // 3. Render Delta Table
+        const delta = document.getElementById('out-delta');
+        delta.innerHTML = `
+            <table style="width:100%;font-size:12px;border-collapse:collapse;">
+                <thead><tr style="text-align:left;color:var(--color-text-secondary);border-bottom:1px solid var(--color-border)"><th style="padding-bottom:8px">Goal</th><th style="padding-bottom:8px">Gap</th><th style="padding-bottom:8px">Monthly Needed</th></tr></thead>
+                <tbody>
+                    ${results.milestoneResults.filter(m => m.shortfall).map(m => `
+                        <tr style="border-bottom:1px solid rgba(255,255,255,0.05)">
+                            <td style="padding:8px 0">${m.label}</td>
+                            <td style="padding:8px 0">₹${(m.gap / 100000).toFixed(1)}L</td>
+                            <td style="padding:8px 0;color:var(--color-emerald)">₹${Math.round(m.monthlySavingsNeeded).toLocaleString()}</td>
+                        </tr>
+                    `).join('') || '<tr><td colspan="3" style="padding:16px 0;text-align:center;color:var(--color-text-secondary)">All goals are currently on track</td></tr>'}
+                </tbody>
+            </table>
         `;
+
+        // 4. Retirement Readiness
+        const retireGoal = 20000000;
+        const pct = Math.min(100, Math.max(0, (corpus / retireGoal) * 100));
+        document.getElementById('out-retire-bar').style.width = pct + '%';
+        document.getElementById('out-retire-pct').textContent = `${Math.round(pct)}% of retirement goal (₹2 Cr) covered`;
+
+        // 5. Template Cards
+        const templateDiv = document.getElementById('templates');
+        templateDiv.innerHTML = '<p class="ctrl-label">Quick Templates</p>';
+        Object.keys(window.templates).forEach(key => {
+            const t = window.templates[key];
+            const active = window.activeTemplate === key;
+            const card = document.createElement('div');
+            card.className = 'btn-zoom';
+            card.style.display = 'flex'; card.style.alignItems = 'center'; card.style.gap = '10px'; card.style.padding = '10px 16px'; card.style.borderRadius = '8px'; card.style.marginBottom = '8px';
+            if (active) card.classList.add('active');
+            card.onclick = () => window.loadTemplate(key);
+            card.innerHTML = `<span>${t.icon}</span><span style="font-size:13px">${t.label}</span>`;
+            templateDiv.appendChild(card);
+        });
+
+        // Sync inputs
+        document.getElementById('val-savings').textContent = s.monthlySavings.toLocaleString();
+        document.getElementById('ctrl-savings').value = s.monthlySavings;
+        document.getElementById('val-return').textContent = (s.annualReturn * 100).toFixed(1) + '%';
+        document.getElementById('ctrl-return').value = s.annualReturn * 100;
+        document.getElementById('ctrl-networth').value = s.netWorth;
+        document.getElementById('ctrl-inflation').checked = s.inflationEnabled;
+        document.getElementById('val-inflrate').textContent = (s.inflationRate * 100).toFixed(1) + '% p.a.';
+        document.getElementById('ctrl-inflrate').value = s.inflationRate * 100;
+        document.getElementById('inflation-sub').style.display = s.inflationEnabled ? 'block' : 'none';
     };
 
-    // Wiring Controls
-    document.getElementById('input-savings').addEventListener('input', (e) => {
+    // Wiring
+    document.getElementById('ctrl-savings').addEventListener('input', (e) => {
         window.horizonState.monthlySavings = parseInt(e.target.value);
         window.runAndRender();
     });
-
-    document.getElementById('input-return').addEventListener('input', (e) => {
+    document.getElementById('ctrl-return').addEventListener('input', (e) => {
         window.horizonState.annualReturn = parseFloat(e.target.value) / 100;
         window.runAndRender();
     });
-
-    document.getElementById('input-inflation').addEventListener('change', (e) => {
+    document.getElementById('ctrl-networth').addEventListener('input', (e) => {
+        window.horizonState.netWorth = parseInt(e.target.value) || 0;
+        window.runAndRender();
+    });
+    document.getElementById('ctrl-inflation').addEventListener('change', (e) => {
         window.horizonState.inflationEnabled = e.target.checked;
+        window.runAndRender();
+    });
+    document.getElementById('ctrl-inflrate').addEventListener('input', (e) => {
+        window.horizonState.inflationRate = parseFloat(e.target.value) / 100;
         window.runAndRender();
     });
 
