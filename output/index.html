@@ -134,6 +134,76 @@
             z-index: -1;
             pointer-events: none;
         }
+
+        #navbar { 
+            position: sticky; 
+            top: 0; 
+            z-index: 100; 
+            display: flex; 
+            align-items: center; 
+            justify-content: space-between; 
+            padding: 16px 5vw; 
+            background: rgba(5, 10, 14, 0.7); 
+            backdrop-filter: blur(20px); 
+            border-bottom: 1px solid var(--color-border); 
+        }
+        .nav-logo { 
+            font-family: 'Cal Sans', sans-serif; 
+            font-size: 22px; 
+            color: var(--color-emerald); 
+            letter-spacing: -0.5px; 
+        }
+        .nav-links { 
+            display: flex; 
+            gap: 32px; 
+        }
+        .nav-links a { 
+            color: var(--color-text-secondary); 
+            text-decoration: none; 
+            font-size: 14px; 
+            transition: color 0.2s; 
+        }
+        .nav-links a:hover { 
+            color: var(--color-text-primary); 
+        }
+
+        #hero { 
+            min-height: 100vh; 
+            display: flex; 
+            align-items: center; 
+            padding: 0 10vw; 
+        }
+        .hero-inner { 
+            max-width: 700px; 
+        }
+        .hero-h1 { 
+            font-family: 'Cal Sans', sans-serif; 
+            font-size: clamp(40px, 6vw, 72px); 
+            line-height: 1.1; 
+            margin: 16px 0 24px; 
+            color: var(--color-text-primary); 
+        }
+        .hero-em { 
+            color: var(--color-emerald); 
+            font-style: italic; 
+        }
+        .hero-sub { 
+            font-size: 18px; 
+            color: var(--color-text-secondary); 
+            max-width: 520px; 
+            line-height: 1.7; 
+            margin-bottom: 32px; 
+        }
+        .hero-cta { 
+            font-size: 16px; 
+            padding: 16px 32px; 
+        }
+        .hero-hint { 
+            margin-top: 16px; 
+            font-size: 13px; 
+            color: var(--color-text-secondary); 
+            opacity: 0.6; 
+        }
     </style>
 </head>
 <body>
@@ -141,10 +211,26 @@
     <canvas id="bg-canvas" style="position:fixed;top:0;left:0;width:100vw;height:100vh;z-index:-1;pointer-events:none;"></canvas>
     
     <div id="ui-layer">
-        <!-- AGENT3:NAVBAR -->
+        <nav id='navbar'>
+          <div class='nav-logo'>Horizon</div>
+          <div class='nav-links'>
+            <a href='#timeline'>Timeline</a>
+            <a href='#simulate'>Simulate</a>
+            <a href='#templates'>Templates</a>
+          </div>
+          <button class='btn-primary' onclick="document.getElementById('timeline').scrollIntoView({behavior:'smooth'})">Start Planning</button>
+        </nav>
 
         <main>
-            <!-- AGENT3:HERO -->
+        <section id='hero'>
+          <div class='hero-inner'>
+            <p class='section-label'>Your financial future, visualized</p>
+            <h1 class='hero-h1'>Every rupee you save<br>is a milestone<br><em class='hero-em'>made possible.</em></h1>
+            <p class='hero-sub'>Drag your life goals onto a 60-year timeline. Watch compound interest build — or break — your plan in real time.</p>
+            <button class='btn-primary hero-cta' onclick="document.getElementById('timeline').scrollIntoView({behavior:'smooth'})">Build My Timeline →</button>
+            <p class='hero-hint'>↓ Aditya's plan is pre-loaded — move the sliders to see the math change live</p>
+          </div>
+        </section>
             
             <!-- AGENT3:TIMELINE -->
             
