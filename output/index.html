@@ -39,7 +39,7 @@
             -moz-osx-font-smoothing: grayscale;
         }
 
-        html, body {
+        body {
             margin: 0;
             padding: 0;
             background: var(--color-bg);
@@ -47,48 +47,45 @@
             font-family: var(--font-main);
             overflow-x: hidden;
             scroll-behavior: smooth;
+            cursor: none; /* Hide default cursor */
         }
 
-        ::selection {
-            background: var(--color-emerald);
-            color: #000;
+        #scroll-progress {
+            position: fixed;
+            top: 0;
+            left: 0;
+            height: 2px;
+            background: linear-gradient(90deg, #00D37F, #00A862);
+            z-index: 9997;
+            width: 0%;
         }
 
-        /* Scrollbar */
-        ::-webkit-scrollbar {
-            width: 6px;
+        #cursor-dot { 
+            position: fixed;
+            width: 8px;
+            height: 8px;
+            background: #00D37F;
+            border-radius: 50%;
+            pointer-events: none;
+            z-index: 9999;
+            transform: translate(-50%, -50%);
+            transition: transform 0.1s; 
         }
-        ::-webkit-scrollbar-track {
-            background: transparent;
-        }
-        ::-webkit-scrollbar-thumb {
-            background: var(--color-emerald);
-            border-radius: 10px;
-        }
-
-        /* Utility Classes */
-        .section-label {
-            font-size: 11px;
-            letter-spacing: 0.2em;
-            text-transform: uppercase;
-            color: var(--color-emerald);
-            font-weight: 600;
-        }
-
-        .glass-card {
-            background: var(--color-surface-glass);
-            backdrop-filter: blur(16px);
-            border: 1px solid var(--color-border);
-            border-radius: 16px;
-            padding: 24px;
-            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
-            transition: box-shadow 0.2s, transform 0.2s;
-        }
-        .glass-card:hover {
-            box-shadow: 0 0 0 1px var(--color-border), 0 12px 40px rgba(0,0,0,0.5);
+        #cursor-ring { 
+            position: fixed;
+            width: 32px;
+            height: 32px;
+            border: 1.5px solid #00D37F;
+            border-radius: 50%;
+            pointer-events: none;
+            z-index: 9998;
+            transform: translate(-50%, -50%);
+            transition: border-color 0.2s, transform 0.15s; 
         }
 
         .btn-primary {
+            position: relative;
+            overflow: hidden;
             background: var(--color-emerald);
             color: #000;
             font-family: var(--font-heading);
@@ -103,6 +100,30 @@
             align-items: center;
             justify-content: center;
             text-decoration: none;
+        }
+
+        .ripple { 
+            position: absolute;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.25);
+            transform: scale(0);
+            animation: ripple-anim 0.5s linear;
+            pointer-events: none; 
+        }
+        @keyframes ripple-anim { 
+            to { transform: scale(20); opacity: 0; } 
+        }
+
+        .glass-card {
+            background: var(--color-surface-glass);
+            backdrop-filter: blur(16px);
+            border: 1px solid var(--color-border);
+            border-radius: 16px;
+            padding: 24px;
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+            transition: box-shadow 0.2s, transform 0.2s;
+            transform-style: preserve-3d;
+            will-change: transform;
         }
         .btn-primary:hover {
             transform: scale(1.04);
@@ -262,7 +283,12 @@
 </head>
 <body>
 
+    <div id="scroll-progress"></div>
+    <div id="cursor-dot"></div>
+    <div id="cursor-ring"></div>
+
     <canvas id="bg-canvas" style="position:fixed;top:0;left:0;width:100vw;height:100vh;z-index:-1;pointer-events:none;"></canvas>
+
     
     <div id="ui-layer">
         <nav id='navbar'>
@@ -868,5 +894,183 @@
         gsap.to(svg, { attr:{ viewBox: `${x1} 0 ${w} 340` }, duration:0.5 });
     });
     </script>
+    <!-- INTERACTION LOGIC -->
+    <script>
+    (function() {
+        // 1. MAGNETIC BUTTON EFFECT
+        document.addEventListener('mousemove', (e) => {
+            const btns = document.querySelectorAll('.btn-primary, .btn-zoom');
+            btns.forEach(btn => {
+                const rect = btn.getBoundingClientRect();
+                const btnX = rect.left + rect.width / 2;
+                const btnY = rect.top + rect.height / 2;
+                const dist = Math.hypot(e.clientX - btnX, e.clientY - btnY);
+
+                if (dist < 80) {
+                    const x = (e.clientX - btnX) * 0.35;
+                    const y = (e.clientY - btnY) * 0.35;
+                    gsap.to(btn, { x, y, duration: 0.3, ease: 'power2.out' });
+                } else {
+                    gsap.to(btn, { x: 0, y: 0, duration: 0.5, ease: 'elastic.out(1, 0.3)' });
+                }
+            });
+        });
+
+        // 2. CURSOR CUSTOM
+        const dot = document.getElementById('cursor-dot');
+        const ring = document.getElementById('cursor-ring');
+        
+        window.addEventListener('mousemove', (e) => {
+            dot.style.left = e.clientX + 'px';
+            dot.style.top = e.clientY + 'px';
+            gsap.to(ring, { left: e.clientX, top: e.clientY, duration: 0.12, ease: 'power2.out' });
+        });
+
+        const hoverables = 'button, a, .glass-card, g, circle, input, select';
+        document.addEventListener('mouseover', (e) => {
+            if (e.target.closest(hoverables)) {
+                gsap.to(ring, { scale: 2.2, borderColor: '#F59E0B', duration: 0.15 });
+            }
+        });
+        document.addEventListener('mouseout', (e) => {
+            if (e.target.closest(hoverables)) {
+                gsap.to(ring, { scale: 1, borderColor: '#00D37F', duration: 0.15 });
+            }
+        });
+
+        window.addEventListener('mousedown', () => {
+            gsap.to(dot, { scale: 0.4, duration: 0.1 });
+            gsap.to(ring, { scale: 0.8, duration: 0.1 });
+        });
+        window.addEventListener('mouseup', () => {
+            gsap.to(dot, { scale: 1, duration: 0.1 });
+            gsap.to(ring, { scale: 1, duration: 0.1 });
+        });
+
+        // 3. PAGE SCROLL PROGRESS
+        window.addEventListener('scroll', () => {
+            const winScroll = document.body.scrollTop || document.documentElement.scrollTop;
+            const height = document.documentElement.scrollHeight - document.documentElement.clientHeight;
+            const scrolled = (winScroll / height) * 100;
+            gsap.to('#scroll-progress', { width: scrolled + '%', duration: 0.1 });
+        });
+
+        // 4. GLASS CARD TILT
+        document.addEventListener('mousemove', (e) => {
+            const card = e.target.closest('.glass-card');
+            if (card) {
+                const rect = card.getBoundingClientRect();
+                const relX = e.clientX - rect.left;
+                const relY = e.clientY - rect.top;
+                const rotateX = ((relY / rect.height) - 0.5) * 8;
+                const rotateY = ((relX / rect.width) - 0.5) * -8;
+                gsap.to(card, { rotateX, rotateY, transformPerspective: 800, duration: 0.3, ease: 'power2.out' });
+            }
+        });
+        document.addEventListener('mouseout', (e) => {
+            const card = e.target.closest('.glass-card');
+            if (card) {
+                gsap.to(card, { rotateX: 0, rotateY: 0, duration: 0.5, ease: 'elastic.out(1, 0.5)' });
+            }
+        });
+
+        // 5. SECTION ENTRY ANIMATIONS
+        gsap.registerPlugin(ScrollTrigger);
+        
+        gsap.from('#timeline-svg', {
+            x: -60, opacity: 0, duration: 1, ease: 'power2.out',
+            scrollTrigger: { trigger: '#timeline', start: 'top 70%' }
+        });
+
+        gsap.from('#milestone-cards .glass-card', {
+            y: 40, opacity: 0, stagger: 0.1, duration: 0.8, ease: 'power2.out',
+            scrollTrigger: { trigger: '#milestone-cards', start: 'top 85%' }
+        });
+
+        gsap.from('#simulate > div > div:first-child', {
+            x: -40, opacity: 0, duration: 0.7, ease: 'power2.out',
+            scrollTrigger: { trigger: '#simulate', start: 'top 70%' }
+        });
+        gsap.from('#simulate > div > div:last-child', {
+            x: 40, opacity: 0, duration: 0.7, ease: 'power2.out',
+            scrollTrigger: { trigger: '#simulate', start: 'top 70%' }
+        });
+
+        // 8. CLICK RIPPLE
+        document.addEventListener('click', (e) => {
+            const btn = e.target.closest('button, .btn-zoom');
+            if (btn) {
+                const rect = btn.getBoundingClientRect();
+                const x = e.clientX - rect.left;
+                const y = e.clientY - rect.top;
+                const ripple = document.createElement('span');
+                ripple.className = 'ripple';
+                ripple.style.left = x + 'px';
+                ripple.style.top = y + 'px';
+                btn.appendChild(ripple);
+                setTimeout(() => ripple.remove(), 500);
+            }
+        });
+
+        // 6. NUMBER COUNT-UP INTERCEPTION
+        const oldRenderScenario = window.renderScenarioPanel;
+        let lastCorpus = 0;
+        let lastPct = 0;
+
+        window.renderScenarioPanel = function(results) {
+            oldRenderScenario(results);
+            
+            const age60Point = results.trajectory.find(t => t.age === 60) || results.trajectory[results.trajectory.length - 1];
+            const newCorpus = age60Point.balance;
+            const counter = { val: lastCorpus };
+            
+            gsap.to(counter, {
+                val: newCorpus,
+                duration: 0.8,
+                onUpdate: () => {
+                    const v = counter.val;
+                    document.getElementById('out-corpus').textContent = v >= 10000000 
+                        ? `₹${(v / 10000000).toFixed(2)} Cr` 
+                        : `₹${(v / 100000).toFixed(2)} L`;
+                }
+            });
+            lastCorpus = newCorpus;
+
+            const newPct = Math.min(100, (newCorpus / 20000000) * 100);
+            const pctCounter = { val: lastPct };
+            gsap.to(pctCounter, {
+                val: newPct,
+                duration: 0.8,
+                onUpdate: () => {
+                    document.getElementById('out-retire-pct').textContent = `${Math.round(pctCounter.val)}% of retirement goal covered`;
+                }
+            });
+            lastPct = newPct;
+        };
+
+        // 7. MILESTONE CARD FLIP
+        window.prevStatus = {};
+        const oldRenderCards = window.renderMilestoneCards;
+        window.renderMilestoneCards = function(results) {
+            results.milestoneResults.forEach(m => {
+                const status = m.shortfall ? 'AT RISK' : 'ON TRACK';
+                if (window.prevStatus[m.id] && window.prevStatus[m.id] !== status) {
+                    const card = [...document.querySelectorAll('#milestone-cards .glass-card')].find(c => c.innerHTML.includes(m.label));
+                    if (card) {
+                        gsap.to(card, { rotateY: 90, duration: 0.2, onComplete: () => {
+                            window.prevStatus[m.id] = status;
+                            oldRenderCards(results); // Re-render content
+                            gsap.to(card, { rotateY: 0, duration: 0.2 });
+                        }});
+                        return;
+                    }
+                }
+                window.prevStatus[m.id] = status;
+            });
+            oldRenderCards(results);
+        };
+    })();
+    </script>
 </body>
 </html>
+
