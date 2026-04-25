@@ -83,6 +83,15 @@
             transition: border-color 0.2s, transform 0.15s; 
         }
 
+        #orb1,#orb2,#orb3 { position:fixed;border-radius:50%; pointer-events:none;z-index:0;filter:blur(80px);opacity:0.07; }
+        #orb1 { width:600px;height:600px;background:#00D37F; top:-200px;left:-100px;animation:orbFloat1 12s ease-in-out infinite; }
+        #orb2 { width:500px;height:500px;background:#00D37F; bottom:-150px;right:-100px;animation:orbFloat2 15s ease-in-out infinite; }
+        #orb3 { width:400px;height:400px;background:#F59E0B; top:50%;left:50%;transform:translate(-50%,-50%); animation:orbFloat3 20s ease-in-out infinite;opacity:0.04; }
+
+        @keyframes orbFloat1 { 0%,100%{transform:translate(0,0) scale(1)} 50%{transform:translate(60px,40px) scale(1.1)} }
+        @keyframes orbFloat2 { 0%,100%{transform:translate(0,0) scale(1)} 50%{transform:translate(-40px,-60px) scale(0.95)} }
+        @keyframes orbFloat3 { 0%,100%{transform:translate(-50%,-50%) scale(1)} 33%{transform:translate(-40%,-60%) scale(1.15)} 66%{transform:translate(-60%,-40%) scale(0.9)} }
+
         .btn-primary {
             position: relative;
             overflow: hidden;
@@ -115,15 +124,21 @@
         }
 
         .glass-card {
-            background: var(--color-surface-glass);
-            backdrop-filter: blur(16px);
-            border: 1px solid var(--color-border);
+            background: linear-gradient(135deg, rgba(10,22,40,0.7) 0%, rgba(10,22,40,0.4) 100%);
+            backdrop-filter: blur(20px) saturate(180%);
+            -webkit-backdrop-filter: blur(20px) saturate(180%);
+            border: 1px solid rgba(0,211,127,0.12);
             border-radius: 16px;
             padding: 24px;
-            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+            box-shadow: 0 8px 32px rgba(0,0,0,0.4), inset 0 1px 0 rgba(0,211,127,0.1);
             transition: box-shadow 0.2s, transform 0.2s;
             transform-style: preserve-3d;
             will-change: transform;
+            min-width: 280px;
+            max-width: 340px;
+            display: flex;
+            flex-direction: column;
+            box-sizing: border-box;
         }
         .btn-primary:hover {
             transform: scale(1.04);
@@ -190,6 +205,7 @@
         }
         .hero-inner { 
             max-width: 700px; 
+            transform-perspective: 400px;
         }
         .hero-h1 { 
             font-family: 'Cal Sans', sans-serif; 
@@ -283,6 +299,15 @@
 </head>
 <body>
 
+    <div id="loader" style="position:fixed;inset:0;z-index:99999; background:#050A0E;display:flex;flex-direction:column; align-items:center;justify-content:center;">
+        <p style="font-family:Cal Sans,sans-serif;font-size:32px; color:#00D37F;letter-spacing:2px;">HORIZON</p>
+        <div id="loader-bar" style="width:200px;height:1px; background:rgba(0,211,127,0.2);margin-top:24px;border-radius:1px; overflow:hidden;">
+            <div id="loader-fill" style="height:100%;width:0%; background:#00D37F;transition:width 0.05s linear;"></div>
+        </div>
+        <p id="loader-text" style="font-size:12px;color:#8899A6; margin-top:16px;letter-spacing:0.15em;">INITIALIZING</p>
+    </div>
+
+    <div id="orb1"></div><div id="orb2"></div><div id="orb3"></div>
     <div id="scroll-progress"></div>
     <div id="cursor-dot"></div>
     <div id="cursor-ring"></div>
@@ -324,7 +349,7 @@
                 <div id='timeline-scroll' style='overflow-x:auto;overflow-y:visible;padding-bottom:16px;'>
                     <svg id='timeline-svg' width='3000' height='340' style='display:block;'></svg>
                 </div>
-                <div id='milestone-cards' style='display:flex;flex-wrap:wrap;gap:16px;margin-top:32px;'></div>
+                <div id='milestone-cards' style='display:flex;flex-wrap:wrap;gap:16px;margin-top:32px;align-items:stretch;'></div>
                 <button onclick='window.openAddMilestone()' style='margin-top:16px;background:transparent;border:1px solid var(--color-border);color:var(--color-emerald);padding:10px 24px;border-radius:8px;cursor:pointer;font-size:14px;'>+ Add Milestone</button>
             </section>
 
@@ -598,17 +623,26 @@
         renderer.setSize(window.innerWidth, window.innerHeight);
     });
 
+    const emeraldColor = new THREE.Color(0x00D37F);
+    const deepEmeraldColor = new THREE.Color(0x00A862);
+
     function animate() {
         requestAnimationFrame(animate);
         const time = clock.getElapsedTime();
         
         updateParticles();
+
+        // AGENT 2 — SCROLL-LINKED PARTICLE COLOR SHIFT
+        const scrollPct = window.scrollY / (document.documentElement.scrollHeight - window.innerHeight);
+        if (scrollPct <= 0.5) {
+            particlesMaterial.color.lerpColors(emeraldColor, deepEmeraldColor, scrollPct * 2);
+        } else {
+            particlesMaterial.color.lerpColors(deepEmeraldColor, emeraldColor, (scrollPct - 0.5) * 2);
+        }
         
         // Constellation Rotation & Pulse
         nodeGroup.rotation.y += 0.0003;
         nodes.forEach(node => {
-            const dist = node.position.distanceTo(camera.position); // Using distance to camera as a proxy for screen position proximity is complex, but the requirement is "mouse proximity (within 25 units)" in 3D space
-            // Simplified mouse interaction in 3D:
             const mouse3D = new THREE.Vector3(mouseTarget.x * 50, mouseTarget.y * 50, 0);
             const d = node.position.distanceTo(mouse3D);
             const targetScale = d < 25 ? 1.4 : 1.0;
@@ -758,6 +792,24 @@
             icon.setAttribute("x", mx); icon.setAttribute("y", 245); icon.setAttribute("text-anchor", "middle"); icon.setAttribute("font-size", "13"); icon.textContent = m.icon;
             group.appendChild(icon);
             
+            // AGENT 3 — TIMELINE HOVER GLOW
+            const labelText = document.createElementNS("http://www.w3.org/2000/svg", "text");
+            labelText.setAttribute("x", mx); labelText.setAttribute("y", 210); labelText.setAttribute("text-anchor", "middle");
+            labelText.setAttribute("fill", "#F0F4F8"); labelText.setAttribute("font-size", "12"); labelText.setAttribute("opacity", "0");
+            labelText.textContent = `Age ${m.age}: ${m.label}`;
+            svg.appendChild(labelText);
+
+            group.addEventListener('mouseenter', () => {
+                circle.style.filter = `drop-shadow(0 0 8px ${m.shortfall ? '#F59E0B' : '#00D37F'})`;
+                gsap.to(circle, { attr: { r: 18 }, strokeWidth: 3, duration: 0.3 });
+                gsap.to(labelText, { opacity: 1, y: 200, duration: 0.3 });
+            });
+            group.addEventListener('mouseleave', () => {
+                circle.style.filter = 'none';
+                gsap.to(circle, { attr: { r: 14 }, strokeWidth: 2, duration: 0.3 });
+                gsap.to(labelText, { opacity: 0, y: 210, duration: 0.3 });
+            });
+
             group.addEventListener('mousedown', (e) => {
                 const onMove = (em) => {
                     const pt = svg.createSVGPoint(); pt.x = em.clientX;
@@ -773,21 +825,58 @@
         });
     };
 
+    function formatINR(amount) {
+        if (amount >= 10000000) return '₹' + (amount / 10000000).toFixed(2) + ' Cr';
+        if (amount >= 100000) return '₹' + (amount / 100000).toFixed(1) + ' L';
+        return '₹' + amount.toLocaleString('en-IN');
+    }
+
     window.renderMilestoneCards = function(results) {
-        const container = document.getElementById('milestone-cards'); container.innerHTML = '';
+        const container = document.getElementById('milestone-cards'); 
+        container.innerHTML = '';
+        
         results.milestoneResults.forEach(m => {
-            const card = document.createElement('div'); card.className = 'glass-card';
-            card.style.width = 'calc(33.33% - 11px)'; card.style.minWidth = '280px';
+            const card = document.createElement('div'); 
+            card.className = 'glass-card';
+            // Flex column ensured by CSS update earlier
+            
             card.innerHTML = `
-                <div style="display:flex;justify-content:space-between;margin-bottom:12px;">
+                <div style="display:flex;justify-content:space-between;align-items:center;">
                     <span style="font-size:24px;">${m.icon}</span>
-                    <span class="${m.shortfall ? 'badge-atrisk' : 'badge-ontrack'}">${m.shortfall ? 'AT RISK' : 'ON TRACK'}</span>
+                    <span class="badge-ontrack" style="font-size:10px;text-transform:uppercase;">${m.category || 'Goal'}</span>
                 </div>
-                <h3 style="font-family:Cal Sans;margin:0 0 8px;">${m.label}</h3>
-                <p style="color:var(--color-text-secondary);font-size:14px;margin:0;">Age ${m.age} • ₹${(m.cost/100000).toFixed(1)}L</p>
-                <div style="margin-top:16px;display:flex;gap:8px;">
-                    <button class="btn-primary" style="padding:6px 12px;font-size:12px;" onclick="window.editMilestone(${m.id})">Edit</button>
-                    <button onclick="window.deleteMilestone(${m.id})" style="background:transparent;border:1px solid rgba(255,0,0,0.2);color:#ff4444;padding:6px 12px;border-radius:4px;cursor:pointer;font-size:12px;">Delete</button>
+                
+                <h3 style="font-family:Cal Sans;font-weight:600;font-size:16px;margin:10px 0 4px;">${m.label}</h3>
+                
+                <p style="color:var(--color-text-secondary);font-size:13px;margin:0 0 12px;">
+                    Age ${m.age} · ${formatINR(m.cost)}
+                </p>
+                
+                <div style="margin-bottom:8px;">
+                    <span class="${m.shortfall ? 'badge-atrisk' : 'badge-ontrack'}">
+                        ${m.shortfall ? 'AT RISK' : 'ON TRACK'}
+                    </span>
+                </div>
+
+                ${m.shortfall ? `
+                    <p style="color:var(--color-amber);font-size:12px;line-height:1.5;margin:4px 0 0;">
+                        Short by ${formatINR(m.gap)}. Save ₹${Math.round(m.monthlySavingsNeeded).toLocaleString('en-IN')}/mo more.
+                    </p>
+                ` : ''}
+
+                <div style="flex:1;"></div> <!-- Spacer to push buttons down -->
+
+                <div style="display:flex;align-items:center;gap:10px;margin-top:16px;flex-wrap:nowrap;">
+                    <button onclick="window.editMilestone(${m.id})" 
+                        onmouseover="this.style.opacity='0.85'" onmouseout="this.style.opacity='1'"
+                        style="flex:1;min-width:0;padding:8px 0;background:var(--color-emerald);color:#000;border:none;border-radius:8px;cursor:pointer;font-size:13px;font-weight:600;font-family:inherit;transition:opacity 0.2s;position:relative;overflow:hidden;">
+                        Edit
+                    </button>
+                    <button onclick="window.deleteMilestone(${m.id})" 
+                        onmouseover="this.style.background='rgba(245,158,11,0.1)'" onmouseout="this.style.background='transparent'"
+                        style="flex:1;min-width:0;padding:8px 0;background:transparent;color:var(--color-amber);border:1px solid rgba(245,158,11,0.35);border-radius:8px;cursor:pointer;font-size:13px;font-weight:600;font-family:inherit;transition:all 0.2s;position:relative;overflow:hidden;">
+                        Delete
+                    </button>
                 </div>
             `;
             container.appendChild(card);
@@ -872,11 +961,47 @@
         document.getElementById('ctrl-inflrate').value = s.inflationRate * 100;
 
         window.runAndRender();
-        gsap.from('.hero-inner > *', {opacity:0, y:40, stagger:0.15, duration:0.8, ease:'power2.out'});
+
+        // AGENT 3 — TYPEWRITER HERO HEADLINE
+        const heroH1 = document.querySelector('.hero-h1');
+        const text = heroH1.innerText;
+        heroH1.innerHTML = '';
+        text.split('').forEach(char => {
+            const span = document.createElement('span');
+            span.innerText = char === '\n' ? '\n' : char;
+            span.style.display = 'inline-block';
+            span.style.opacity = '0';
+            heroH1.appendChild(span);
+        });
+        gsap.to('.hero-h1 span', {
+            opacity: 1, y: 0, rotateX: 0,
+            duration: 0.4, stagger: 0.03,
+            startAt: { y: 20, rotateX: 90 },
+            ease: 'power2.out'
+        });
+
+        gsap.from('.hero-inner > *:not(.hero-h1)', {opacity:0, y:40, stagger:0.15, duration:0.8, ease:'power2.out', delay: 1});
+
         gsap.registerPlugin(ScrollTrigger);
         ['#timeline','#simulate'].forEach(sel => {
             gsap.from(sel+' h2', {opacity:0, y:30, duration:0.6, scrollTrigger:{trigger:sel, start:'top 80%'}});
         });
+
+        // AGENT 1 — LOADING SCREEN
+        let progress = 0;
+        const loaderInterval = setInterval(() => {
+            progress += Math.random() * 15;
+            if (progress >= 100) { progress = 100; clearInterval(loaderInterval);
+                setTimeout(() => {
+                    gsap.to('#loader', {opacity:0, duration:0.6, onComplete:()=>document.getElementById('loader').remove()});
+                }, 300);
+            }
+            document.getElementById('loader-fill').style.width = progress + '%';
+            document.getElementById('loader-text').textContent = 
+                progress < 40 ? 'LOADING TIMELINE' : 
+                progress < 70 ? 'RUNNING SIMULATION' : 
+                progress < 90 ? 'BUILDING YOUR FUTURE' : 'READY';
+        }, 80);
     });
 
     document.getElementById('ctrl-savings').oninput = function() { window.horizonState.monthlySavings = +this.value; document.getElementById('val-savings').textContent = (+this.value).toLocaleString('en-IN'); window.runAndRender(); };
@@ -1073,4 +1198,3 @@
     </script>
 </body>
 </html>
-
