@@ -46,6 +46,7 @@
             color: var(--color-text-primary);
             font-family: var(--font-main);
             overflow-x: hidden;
+            scroll-behavior: smooth;
         }
 
         ::selection {
@@ -81,6 +82,10 @@
             border-radius: 16px;
             padding: 24px;
             box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+            transition: box-shadow 0.2s, transform 0.2s;
+        }
+        .glass-card:hover {
+            box-shadow: 0 0 0 1px var(--color-border), 0 12px 40px rgba(0,0,0,0.5);
         }
 
         .btn-primary {
@@ -122,17 +127,6 @@
             border-radius: 20px;
             font-weight: 500;
             border: 1px solid rgba(245, 158, 11, 0.2);
-        }
-
-        /* Placeholder for canvas depth */
-        #canvas-container {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            z-index: -1;
-            pointer-events: none;
         }
 
         #navbar { 
@@ -241,6 +235,29 @@
         .toggle-slider:before { content:'';position:absolute;width:18px;height:18px;left:3px;top:3px;background:white;border-radius:50%;transition:0.3s; }
         .toggle-switch input:checked + .toggle-slider { background:var(--color-emerald); }
         .toggle-switch input:checked + .toggle-slider:before { transform:translateX(20px); }
+
+        #timeline-svg g {
+            cursor: grab;
+        }
+        #timeline-svg g:active {
+            cursor: grabbing;
+        }
+
+        @media (max-width: 768px) {
+            #simulate div[style*="grid-template-columns"] {
+                grid-template-columns: 1fr !important;
+            }
+            #hero {
+                padding: 0 6vw;
+                text-align: center;
+            }
+            .hero-inner {
+                margin: 0 auto;
+            }
+            .nav-links {
+                display: none;
+            }
+        }
     </style>
 </head>
 <body>
@@ -259,130 +276,111 @@
         </nav>
 
         <main>
-        <section id='hero'>
-          <div class='hero-inner'>
-            <p class='section-label'>Your financial future, visualized</p>
-            <h1 class='hero-h1'>Every rupee you save<br>is a milestone<br><em class='hero-em'>made possible.</em></h1>
-            <p class='hero-sub'>Drag your life goals onto a 60-year timeline. Watch compound interest build — or break — your plan in real time.</p>
-            <button class='btn-primary hero-cta' onclick="document.getElementById('timeline').scrollIntoView({behavior:'smooth'})">Build My Timeline →</button>
-            <p class='hero-hint'>↓ Aditya's plan is pre-loaded — move the sliders to see the math change live</p>
-          </div>
-        </section>
-            
-        <section id='timeline' style='min-height:100vh;padding:80px 5vw;'>
-          <p class='section-label'>Your Timeline</p>
-          <h2 style='font-family:Cal Sans,sans-serif;font-size:clamp(32px,4vw,48px);margin:8px 0 8px;'>Drag milestones. Watch the math.</h2>
-          <p style='color:var(--color-text-secondary);margin-bottom:32px;'>Age 20 to 80 — your entire financial life on one axis.</p>
-          <div style='display:flex;gap:12px;margin-bottom:24px;'>
-            <button class='zoom-btn btn-zoom' data-zoom='5'>5 Year</button>
-            <button class='zoom-btn btn-zoom' data-zoom='10'>10 Year</button>
-            <button class='zoom-btn btn-zoom active' data-zoom='full'>Full Life</button>
-          </div>
-          <div id='timeline-scroll' style='overflow-x:auto;overflow-y:visible;padding-bottom:16px;'>
-            <svg id='timeline-svg' width='3000' height='340' style='display:block;'></svg>
-          </div>
-          <div id='milestone-cards' style='display:flex;flex-wrap:wrap;gap:16px;margin-top:32px;'></div>
-          <button onclick='window.openAddMilestone()' style='margin-top:16px;background:transparent;border:1px solid var(--color-border);color:var(--color-emerald);padding:10px 24px;border-radius:8px;cursor:pointer;font-size:14px;'>+ Add Milestone</button>
-        </section>
-        <div id='milestone-modal' style='display:none;position:fixed;inset:0;z-index:200;background:rgba(0,0,0,0.7);backdrop-filter:blur(8px);align-items:center;justify-content:center;'></div>
-            
-        <section id='simulate' style='min-height:100vh;padding:80px 5vw;'>
-          <p class='section-label'>What-If Scenarios</p>
-          <h2 style='font-family:Cal Sans,sans-serif;font-size:clamp(32px,4vw,48px);margin:8px 0 40px;'>Adjust the variables.<br>Own the outcome.</h2>
-          <div style='display:grid;grid-template-columns:1fr 1fr;gap:40px;align-items:start;'>
-
-            <div class='glass-card' style='display:flex;flex-direction:column;gap:28px;'>
-              <div class='control-group'>
-                <label class='ctrl-label'>Monthly Savings</label>
-                <div class='ctrl-row'><span class='ctrl-prefix'>₹</span><input type='range' id='ctrl-savings' min='5000' max='100000' step='1000' value='25000'><span id='val-savings' class='ctrl-val'>25,000</span></div>
-              </div>
-              <div class='control-group'>
-                <label class='ctrl-label'>Annual Return</label>
-                <div class='ctrl-row'><input type='range' id='ctrl-return' min='4' max='20' step='0.5' value='10'><span id='val-return' class='ctrl-val'>10.0%</span></div>
-              </div>
-              <div class='control-group'>
-                <label class='ctrl-label'>Starting Balance</label>
-                <div class='ctrl-row'><span class='ctrl-prefix'>₹</span><input type='number' id='ctrl-networth' value='500000' style='flex:1;background:transparent;border:1px solid var(--color-border);border-radius:8px;color:var(--color-text-primary);padding:8px 12px;font-size:14px;'></div>
-              </div>
-              <div class='control-group'>
-                <label class='ctrl-label' style='display:flex;align-items:center;justify-content:space-between;'>
-                  Inflation Adjustment
-                  <label class='toggle-switch'><input type='checkbox' id='ctrl-inflation'><span class='toggle-slider'></span></label>
-                </label>
-                <div id='inflation-sub' style='display:none;margin-top:12px;'>
-                  <div class='ctrl-row'><input type='range' id='ctrl-inflrate' min='3' max='12' step='0.5' value='6'><span id='val-inflrate' class='ctrl-val'>6.0% p.a.</span></div>
+            <section id='hero'>
+                <div class='hero-inner'>
+                    <p class='section-label'>Your financial future, visualized</p>
+                    <h1 class='hero-h1'>Every rupee you save<br>is a milestone<br><em class='hero-em'>made possible.</em></h1>
+                    <p class='hero-sub'>Drag your life goals onto a 60-year timeline. Watch compound interest build — or break — your plan in real time.</p>
+                    <button class='btn-primary hero-cta' onclick="document.getElementById('timeline').scrollIntoView({behavior:'smooth'})">Build My Timeline →</button>
+                    <p class='hero-hint'>↓ Aditya's plan is pre-loaded — move the sliders to see the math change live</p>
                 </div>
-              </div>
-              <div id='templates' style='display:flex;flex-direction:column;gap:10px;'>
-                <p class='ctrl-label'>Templates</p>
-              </div>
-            </div>
-
-            <div style='display:flex;flex-direction:column;gap:16px;'>
-              <div class='glass-card'>
-                <p style='font-size:12px;color:var(--color-text-secondary);margin-bottom:4px;'>Projected corpus at age 60</p>
-                <p id='out-corpus' style='font-family:Cal Sans,sans-serif;font-size:40px;color:var(--color-emerald);'>₹0</p>
-                <p style='font-size:12px;color:var(--color-text-secondary);'>at your current savings rate</p>
-              </div>
-              <div class='glass-card' id='out-feasibility'></div>
-              <div class='glass-card' id='out-delta'></div>
-              <div class='glass-card'>
-                <p style='font-size:13px;color:var(--color-text-secondary);margin-bottom:8px;'>Retirement readiness</p>
-                <div style='background:rgba(255,255,255,0.08);border-radius:8px;height:8px;overflow:hidden;'>
-                  <div id='out-retire-bar' style='height:100%;background:var(--color-emerald);border-radius:8px;width:0%;transition:width 0.5s ease;'></div>
+            </section>
+                
+            <section id='timeline' style='min-height:100vh;padding:80px 5vw;'>
+                <p class='section-label'>Your Timeline</p>
+                <h2 style='font-family:Cal Sans,sans-serif;font-size:clamp(32px,4vw,48px);margin:8px 0 8px;'>Drag milestones. Watch the math.</h2>
+                <p style='color:var(--color-text-secondary);margin-bottom:32px;'>Age 20 to 80 — your entire financial life on one axis.</p>
+                <div style='display:flex;gap:12px;margin-bottom:24px;'>
+                    <button class='zoom-btn btn-zoom' data-zoom='5'>5 Year</button>
+                    <button class='zoom-btn btn-zoom' data-zoom='10'>10 Year</button>
+                    <button class='zoom-btn btn-zoom active' data-zoom='full'>Full Life</button>
                 </div>
-                <p id='out-retire-pct' style='font-size:13px;margin-top:8px;color:var(--color-text-secondary);'>0% of retirement goal covered</p>
-              </div>
-            </div>
-          </div>
-        </section>
+                <div id='timeline-scroll' style='overflow-x:auto;overflow-y:visible;padding-bottom:16px;'>
+                    <svg id='timeline-svg' width='3000' height='340' style='display:block;'></svg>
+                </div>
+                <div id='milestone-cards' style='display:flex;flex-wrap:wrap;gap:16px;margin-top:32px;'></div>
+                <button onclick='window.openAddMilestone()' style='margin-top:16px;background:transparent;border:1px solid var(--color-border);color:var(--color-emerald);padding:10px 24px;border-radius:8px;cursor:pointer;font-size:14px;'>+ Add Milestone</button>
+            </section>
+
+            <div id='milestone-modal' style='display:none;position:fixed;inset:0;z-index:200;background:rgba(0,0,0,0.7);backdrop-filter:blur(8px);align-items:center;justify-content:center;'></div>
+                
+            <section id='simulate' style='min-height:100vh;padding:80px 5vw;'>
+                <p class='section-label'>What-If Scenarios</p>
+                <h2 style='font-family:Cal Sans,sans-serif;font-size:clamp(32px,4vw,48px);margin:8px 0 40px;'>Adjust the variables.<br>Own the outcome.</h2>
+                <div style='display:grid;grid-template-columns:1fr 1fr;gap:40px;align-items:start;'>
+
+                    <div class='glass-card' style='display:flex;flex-direction:column;gap:28px;'>
+                        <div class='control-group'>
+                            <label class='ctrl-label'>Monthly Savings</label>
+                            <div class='ctrl-row'><span class='ctrl-prefix'>₹</span><input type='range' id='ctrl-savings' min='5000' max='100000' step='1000' value='25000'><span id='val-savings' class='ctrl-val'>25,000</span></div>
+                        </div>
+                        <div class='control-group'>
+                            <label class='ctrl-label'>Annual Return</label>
+                            <div class='ctrl-row'><input type='range' id='ctrl-return' min='4' max='20' step='0.5' value='10'><span id='val-return' class='ctrl-val'>10.0%</span></div>
+                        </div>
+                        <div class='control-group'>
+                            <label class='ctrl-label'>Starting Balance</label>
+                            <div class='ctrl-row'><span class='ctrl-prefix'>₹</span><input type='number' id='ctrl-networth' value='500000' style='flex:1;background:transparent;border:1px solid var(--color-border);border-radius:8px;color:var(--color-text-primary);padding:8px 12px;font-size:14px;'></div>
+                        </div>
+                        <div class='control-group'>
+                            <label class='ctrl-label' style='display:flex;align-items:center;justify-content:space-between;'>
+                            Inflation Adjustment
+                            <label class='toggle-switch'><input type='checkbox' id='ctrl-inflation'><span class='toggle-slider'></span></label>
+                            </label>
+                            <div id='inflation-sub' style='display:none;margin-top:12px;'>
+                            <div class='ctrl-row'><input type='range' id='ctrl-inflrate' min='3' max='12' step='0.5' value='6'><span id='val-inflrate' class='ctrl-val'>6.0% p.a.</span></div>
+                            </div>
+                        </div>
+                        <div id='templates' style='display:flex;flex-direction:column;gap:10px;'>
+                            <p class='ctrl-label'>Templates</p>
+                        </div>
+                    </div>
+
+                    <div style='display:flex;flex-direction:column;gap:16px;'>
+                        <div class='glass-card'>
+                            <p style='font-size:12px;color:var(--color-text-secondary);margin-bottom:4px;'>Projected corpus at age 60</p>
+                            <p id='out-corpus' style='font-family:Cal Sans,sans-serif;font-size:40px;color:var(--color-emerald);'>₹0</p>
+                            <p style='font-size:12px;color:var(--color-text-secondary);'>at your current savings rate</p>
+                        </div>
+                        <div class='glass-card' id='out-feasibility'></div>
+                        <div class='glass-card' id='out-delta'></div>
+                        <div class='glass-card'>
+                            <p style='font-size:13px;color:var(--color-text-secondary);margin-bottom:8px;'>Retirement readiness</p>
+                            <div style='background:rgba(255,255,255,0.08);border-radius:8px;height:8px;overflow:hidden;'>
+                            <div id='out-retire-bar' style='height:100%;background:var(--color-emerald);border-radius:8px;width:0%;transition:width 0.5s ease;'></div>
+                            </div>
+                            <p id='out-retire-pct' style='font-size:13px;margin-top:8px;color:var(--color-text-secondary);'>0% of retirement goal covered</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
         </main>
 
-    <footer style='padding:80px 5vw; border-top:1px solid var(--color-border); background:var(--color-bg);'>
-        <div style='display:flex; justify-content:space-between; align-items:start; flex-wrap:wrap; gap:40px;'>
-            <div style='max-width:300px;'>
-                <div class='nav-logo' style='margin-bottom:16px;'>Horizon</div>
-                <p style='color:var(--color-text-secondary); font-size:14px; line-height:1.6;'>
-                    Visualizing financial independence through interactive 3D simulations. Built for the next generation of wealth creators.
-                </p>
+        <footer style='padding:48px 5vw;border-top:1px solid var(--color-border);display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:24px;'>
+            <div>
+              <p style='font-family:Cal Sans,sans-serif;font-size:20px;color:var(--color-emerald);'>Horizon</p>
+              <p style='font-size:13px;color:var(--color-text-secondary);margin-top:4px;'>Your wealth. Your timeline. Your terms.</p>
             </div>
-            
-            <div style='display:flex; gap:80px;'>
-                <div>
-                    <p class='section-label' style='margin-bottom:16px;'>Product</p>
-                    <ul style='list-style:none; padding:0; margin:0; display:flex; flex-direction:column; gap:12px;'>
-                        <li><a href='#timeline' style='color:var(--color-text-secondary); text-decoration:none; font-size:14px;'>Timeline</a></li>
-                        <li><a href='#simulate' style='color:var(--color-text-secondary); text-decoration:none; font-size:14px;'>Simulator</a></li>
-                        <li><a href='#' style='color:var(--color-text-secondary); text-decoration:none; font-size:14px;'>Templates</a></li>
-                    </ul>
-                </div>
-                <div>
-                    <p class='section-label' style='margin-bottom:16px;'>Company</p>
-                    <ul style='list-style:none; padding:0; margin:0; display:flex; flex-direction:column; gap:12px;'>
-                        <li><a href='#' style='color:var(--color-text-secondary); text-decoration:none; font-size:14px;'>About</a></li>
-                        <li><a href='#' style='color:var(--color-text-secondary); text-decoration:none; font-size:14px;'>Privacy</a></li>
-                        <li><a href='#' style='color:var(--color-text-secondary); text-decoration:none; font-size:14px;'>Terms</a></li>
-                    </ul>
-                </div>
+            <div style='display:flex;gap:24px;flex-wrap:wrap;'>
+              <a href='#timeline' style='color:var(--color-text-secondary);text-decoration:none;font-size:13px;'>Timeline</a>
+              <a href='#simulate' style='color:var(--color-text-secondary);text-decoration:none;font-size:13px;'>Simulate</a>
+              <a href='#templates' style='color:var(--color-text-secondary);text-decoration:none;font-size:13px;'>Templates</a>
+              <a href='#' onclick='localStorage.clear();location.reload();return false;' style='color:var(--color-amber);text-decoration:none;font-size:13px;'>Reset Data</a>
             </div>
-        </div>
-        
-        <div style='margin-top:80px; padding-top:24px; border-top:1px solid rgba(255,255,255,0.05); display:flex; justify-content:space-between; color:var(--color-text-secondary); font-size:12px;'>
-            <span>© 2026 Horizon Wealth Technologies</span>
-            <span>Made with ✨ by Gemini CLI Team</span>
-        </div>
-    </footer>
+            <p style='font-size:12px;color:var(--color-text-secondary);opacity:0.5;'>Built with compound interest and good design.</p>
+        </footer>
     </div>
 
-    <!-- Scripts and Engine Initialization -->
+    <!-- 3D ENGINE -->
     <script>
-    // 1. RENDERER + SCENE
     const canvas = document.getElementById('bg-canvas');
     const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true });
     renderer.setSize(window.innerWidth, window.innerHeight);
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
     
     const scene = new THREE.Scene();
+    scene.fog = new THREE.FogExp2(0x050A0E, 0.008); // 3. DEPTH FOG
+
     const camera = new THREE.PerspectiveCamera(75, window.innerWidth/window.innerHeight, 0.1, 1000);
     camera.position.z = 60;
 
@@ -393,17 +391,17 @@
         mouseTarget.y = -(e.clientY / window.innerHeight) * 2 + 1;
     });
 
-    // 2. PARTICLE SYSTEM (3500 particles)
+    // EMERALD PARTICLE SYSTEM
     const particleCount = 3500;
     const particlesGeometry = new THREE.BufferGeometry();
     const positions = new Float32Array(particleCount * 3);
     const velocities = new Float32Array(particleCount);
 
     for (let i = 0; i < particleCount * 3; i += 3) {
-        positions[i] = (Math.random() - 0.5) * 200;     // x
-        positions[i+1] = (Math.random() - 0.5) * 200;   // y
-        positions[i+2] = (Math.random() - 0.5) * 200;   // z
-        velocities[i/3] = 0.01 + Math.random() * 0.02;  // vy
+        positions[i] = (Math.random() - 0.5) * 200;
+        positions[i+1] = (Math.random() - 0.5) * 200;
+        positions[i+2] = (Math.random() - 0.5) * 200;
+        velocities[i/3] = 0.01 + Math.random() * 0.02;
     }
 
     particlesGeometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
@@ -421,14 +419,115 @@
     function updateParticles() {
         const positions = particlesGeometry.attributes.position.array;
         for (let i = 0; i < particleCount; i++) {
-            const idx = i * 3 + 1; // y-axis
+            const idx = i * 3 + 1;
             positions[idx] += velocities[i];
             if (positions[idx] > 100) positions[idx] = -100;
         }
         particlesGeometry.attributes.position.needsUpdate = true;
     }
 
-    // 3. WEALTH RIBBON (TubeGeometry)
+    // 1. GEOMETRIC CONSTELLATION NETWORK
+    const nodeCount = 80;
+    const nodes = [];
+    const nodeGroup = new THREE.Group();
+    const nodeGeo = new THREE.IcosahedronGeometry(0.15, 0);
+    const nodeMat = new THREE.MeshBasicMaterial({ color: 0x00D37F, transparent: true, opacity: 0.6 });
+
+    for(let i=0; i<nodeCount; i++) {
+        const node = new THREE.Mesh(nodeGeo, nodeMat);
+        node.position.set((Math.random()-0.5)*120, (Math.random()-0.5)*120, (Math.random()-0.5)*120);
+        nodes.push(node);
+        nodeGroup.add(node);
+    }
+    scene.add(nodeGroup);
+
+    const lineMat = new THREE.LineBasicMaterial({ color: 0x00D37F, transparent: true, opacity: 0.08 });
+    for(let i=0; i<nodeCount; i++) {
+        for(let j=i+1; j<nodeCount; j++) {
+            if(nodes[i].position.distanceTo(nodes[j].position) < 18) {
+                const lineGeo = new THREE.BufferGeometry().setFromPoints([nodes[i].position, nodes[j].position]);
+                const line = new THREE.Line(lineGeo, lineMat);
+                nodeGroup.add(line);
+            }
+        }
+    }
+
+    // 2. FLOATING GEOMETRIC SHAPES
+    const floaters = [];
+    const floaterGeos = [
+        new THREE.TorusGeometry(2, 0.4, 16, 60),
+        new THREE.OctahedronGeometry(1.5),
+        new THREE.TetrahedronGeometry(2),
+        new THREE.IcosahedronGeometry(1.8, 0),
+        new THREE.TorusKnotGeometry(1, 0.3, 100, 16)
+    ];
+    const floaterMat = new THREE.MeshBasicMaterial({ color: 0x00D37F, wireframe: true, transparent: true, opacity: 0.08 });
+
+    floaterGeos.forEach((geo, i) => {
+        const floater = new THREE.Mesh(geo, floaterMat);
+        floater.position.set((Math.random()-0.5)*80, (Math.random()-0.5)*40, (Math.random()-0.5)*40);
+        floater.rotationSpeed = { x: 0.001 + Math.random()*0.003, y: 0.001 + Math.random()*0.003 };
+        floater.phaseOffset = Math.random() * Math.PI * 2;
+        floaters.push(floater);
+        scene.add(floater);
+    });
+
+    // 4. MOUSE RIPPLE EFFECT
+    const rings = [];
+    const raycaster = new THREE.Raycaster();
+    const planeZ = new THREE.Plane(new THREE.Vector3(0, 0, 1), 0);
+
+    window.addEventListener('mousedown', (e) => {
+        const mouse2D = new THREE.Vector2(
+            (e.clientX / window.innerWidth) * 2 - 1,
+            -(e.clientY / window.innerHeight) * 2 + 1
+        );
+        raycaster.setFromCamera(mouse2D, camera);
+        const intersectPoint = new THREE.Vector3();
+        raycaster.ray.intersectPlane(planeZ, intersectPoint);
+
+        const ringGeo = new THREE.RingGeometry(0.1, 0.2, 32);
+        const ringMat = new THREE.MeshBasicMaterial({ color: 0x00D37F, transparent: true, opacity: 0.8 });
+        const ring = new THREE.Mesh(ringGeo, ringMat);
+        ring.position.copy(intersectPoint);
+        scene.add(ring);
+        rings.push(ring);
+
+        if(rings.length > 6) {
+            const oldRing = rings.shift();
+            scene.remove(oldRing);
+        }
+
+        gsap.to(ring.scale, { x: 40, y: 40, duration: 1.2, ease: "power1.out" });
+        gsap.to(ringMat, { opacity: 0, duration: 1.2, ease: "power1.out", onComplete: () => {
+            scene.remove(ring);
+            const idx = rings.indexOf(ring);
+            if(idx > -1) rings.splice(idx, 1);
+        }});
+    });
+
+    // 5. AMBIENT LIGHT PULSE
+    const pulseLight = new THREE.PointLight(0x00D37F, 0.4);
+    pulseLight.position.set(0, 10, 20);
+    scene.add(pulseLight);
+
+    // 6. STAR FIELD LAYER
+    const starCount = 1200;
+    const starGeo = new THREE.BufferGeometry();
+    const starPos = new Float32Array(starCount * 3);
+    for(let i=0; i<starCount*3; i+=3) {
+        const r = 300;
+        const theta = Math.random() * Math.PI * 2;
+        const phi = Math.acos(2 * Math.random() - 1);
+        starPos[i] = r * Math.sin(phi) * Math.cos(theta);
+        starPos[i+1] = r * Math.sin(phi) * Math.sin(theta);
+        starPos[i+2] = r * Math.cos(phi);
+    }
+    starGeo.setAttribute('position', new THREE.BufferAttribute(starPos, 3));
+    const starMat = new THREE.PointsMaterial({ color: 0xffffff, size: 0.15, transparent: true, opacity: 0.3 });
+    const starField = new THREE.Points(starGeo, starMat);
+    scene.add(starField);
+
     window.netWorthAmplitude = 1.5;
     function createWealthRibbon() {
         const points = [];
@@ -441,98 +540,86 @@
         const curve = new THREE.CatmullRomCurve3(points);
         const geometry = new THREE.TubeGeometry(curve, 100, 0.08, 8, false);
         const material = new THREE.MeshBasicMaterial({ color: 0x00D37F, transparent: true, opacity: 0.12 });
-        const ribbon = new THREE.Mesh(geometry, material);
-        return ribbon;
+        return new THREE.Mesh(geometry, material);
     }
     window.wealthRibbon = createWealthRibbon();
     scene.add(window.wealthRibbon);
 
-    // 4. MILESTONE SPHERES
     window.milestoneSpheres = [];
     const sphereGeo = new THREE.SphereGeometry(0.35, 16, 16);
     
     window.updateMilestoneSpheres = function(milestoneResults) {
-        // Remove existing
         window.milestoneSpheres.forEach(s => scene.remove(s));
         window.milestoneSpheres = [];
-
         if (!milestoneResults) return;
 
         milestoneResults.slice(0, 8).forEach(res => {
-            const mat = new THREE.MeshBasicMaterial({ 
-                color: res.ontrack ? 0x00D37F : 0xF59E0B 
-            });
+            const mat = new THREE.MeshBasicMaterial({ color: res.ontrack ? 0x00D37F : 0xF59E0B });
             const sphere = new THREE.Mesh(sphereGeo, mat);
-            
-            // Map age (20-80) to x (-40 to 40)
             const x = ((res.age - 20) / 60) * 80 - 40;
-            // Map balance (approx) to y (-5 to 10)
-            const y = (res.balance / 10000000) * 15 - 5;
-            
+            const y = (res.balanceBefore / 10000000) * 15 - 5;
             sphere.position.set(x, y, 0);
             scene.add(sphere);
             window.milestoneSpheres.push(sphere);
         });
     };
 
-    // 5. CAMERA & ANIMATION
     const clock = new THREE.Clock();
     
-    // 6. GSAP SCROLL
-    gsap.registerPlugin(ScrollTrigger);
-    gsap.to(camera.position, {
-        z: 25,
-        scrollTrigger: {
-            trigger: "body",
-            start: "top top",
-            end: "bottom bottom",
-            scrub: true
-        }
-    });
-
-    // 7. RESIZE HANDLER
     window.addEventListener('resize', () => {
         camera.aspect = window.innerWidth / window.innerHeight;
         camera.updateProjectionMatrix();
         renderer.setSize(window.innerWidth, window.innerHeight);
     });
 
-    // 8. ANIMATION LOOP
     function animate() {
         requestAnimationFrame(animate);
-        const t = clock.getElapsedTime();
+        const time = clock.getElapsedTime();
         
         updateParticles();
         
-        // Mouse lerp & Idle sway
+        // Constellation Rotation & Pulse
+        nodeGroup.rotation.y += 0.0003;
+        nodes.forEach(node => {
+            const dist = node.position.distanceTo(camera.position); // Using distance to camera as a proxy for screen position proximity is complex, but the requirement is "mouse proximity (within 25 units)" in 3D space
+            // Simplified mouse interaction in 3D:
+            const mouse3D = new THREE.Vector3(mouseTarget.x * 50, mouseTarget.y * 50, 0);
+            const d = node.position.distanceTo(mouse3D);
+            const targetScale = d < 25 ? 1.4 : 1.0;
+            node.scale.lerp(new THREE.Vector3(targetScale, targetScale, targetScale), 0.1);
+        });
+
+        // Floating Shapes
+        floaters.forEach(f => {
+            f.rotation.x += f.rotationSpeed.x;
+            f.rotation.y += f.rotationSpeed.y;
+            f.position.y += Math.sin(time + f.phaseOffset) * 0.005;
+        });
+
+        // Light Pulse
+        pulseLight.intensity = 0.3 + Math.sin(time * 0.8) * 0.15;
+
+        // Star Field Rotation
+        starField.rotation.y += 0.00005;
+
         mouse.x += (mouseTarget.x - mouse.x) * 0.05;
         mouse.y += (mouseTarget.y - mouse.y) * 0.05;
-        
         camera.position.x += (mouse.x * 2 - camera.position.x) * 0.05;
         camera.position.y += (mouse.y * 1 - camera.position.y) * 0.05;
         camera.lookAt(0, 0, 0);
-        
         renderer.render(scene, camera);
     }
     animate();
-</script>
-    <!-- Simulation Engine -->
+    </script>
+
+    <!-- SIMULATION ENGINE -->
     <script>
-    // ── STATE ──────────────────────────────────────────────────────
     window.horizonState = {
-      currentAge: 28,
-      monthlySavings: 25000,
-      annualReturn: 0.10,
-      inflationRate: 0.06,
-      inflationEnabled: false,
-      netWorth: 500000,
-      milestones: [
-        { id:1, label:'Buy apartment in Pune', age:32, cost:8000000, category:'home', icon:'🏠' },
-        { id:2, label:'Start my studio', age:35, cost:1500000, category:'business', icon:'🎨' }
-      ]
+      currentAge: 28, monthlySavings: 25000, annualReturn: 0.10, inflationRate: 0.06,
+      inflationEnabled: false, netWorth: 500000,
+      milestones: []
     };
 
-    // ── TEMPLATES ──────────────────────────────────────────────────
     window.templates = {
       aditya: { label:'Aditya — Creative Pro', icon:'🎨', milestones:[
         { id:1, label:'Buy apartment in Pune', age:32, cost:8000000, category:'home', icon:'🏠' },
@@ -553,28 +640,13 @@
       ]}
     };
 
-    window.loadTemplate = function(key) {
-      const t = window.templates[key];
-      if (!t) return;
-      window.horizonState.milestones = JSON.parse(JSON.stringify(t.milestones));
-      window.activeTemplate = key;
-      window.runAndRender();
-      window.saveState();
-    };
-
-    // ── PERSISTENCE ────────────────────────────────────────────────
-    window.saveState = function() {
-      localStorage.setItem('horizonState', JSON.stringify(window.horizonState));
-    };
-    window.loadState = function() {
-      try {
-        const saved = localStorage.getItem('horizonState');
-        if (saved) { window.horizonState = JSON.parse(saved); return true; }
-      } catch(e) {}
+    window.saveState = () => localStorage.setItem('horizonState', JSON.stringify(window.horizonState));
+    window.loadState = () => {
+      const saved = localStorage.getItem('horizonState');
+      if (saved) { window.horizonState = JSON.parse(saved); return true; }
       return false;
     };
 
-    // ── CORE SIMULATION ────────────────────────────────────────────
     window.runSimulation = function() {
       const s = window.horizonState;
       const milestones = [...s.milestones].sort((a,b) => a.age - b.age);
@@ -592,435 +664,209 @@
         milestones.forEach(m => {
           if (!processedIds.has(m.id) && Math.abs(roundedAge - m.age) < 1/24) {
             let cost = m.cost;
-            if (s.inflationEnabled) {
-              const yearsAway = m.age - s.currentAge;
-              cost = cost * Math.pow(1 + s.inflationRate, yearsAway);
-            }
+            if (s.inflationEnabled) cost *= Math.pow(1 + s.inflationRate, m.age - s.currentAge);
             const shortfall = balance < cost;
-            const gap = cost - balance;
             milestoneResults.push({
-              id: m.id, label: m.label, age: m.age, cost, icon: m.icon, category: m.category,
+              ...m, cost, shortfall, gap: shortfall ? cost - balance : 0,
               balanceBefore: balance,
-              shortfall,
-              gap: shortfall ? gap : 0,
               monthlySavingsNeeded: shortfall ? computeSavingsNeeded(s.netWorth, cost, m.age - s.currentAge, s.annualReturn) : 0
             });
-            balance -= cost;
-            if (balance < 0) balance = 0;
+            balance = Math.max(0, balance - cost);
             processedIds.add(m.id);
           }
         });
 
-        if (Math.round(age * 12) % 12 === 0) {
-          trajectory.push({ age: Math.round(age), balance: Math.max(0, balance) });
-        }
+        if (Math.round(age * 12) % 12 === 0) trajectory.push({ age: Math.round(age), balance });
       }
       return { trajectory, milestoneResults };
     };
 
     function computeSavingsNeeded(netWorth, targetCost, years, annualReturn) {
       if (years <= 0) return targetCost;
-      const months = years * 12;
-      const r = annualReturn / 12;
-      const futureValueOfCurrentSavings = netWorth * Math.pow(1+r, months);
-      const remaining = Math.max(0, targetCost - futureValueOfCurrentSavings);
-      if (r === 0) return remaining / months;
-      return remaining * r / (Math.pow(1+r, months) - 1);
+      const months = years * 12, r = annualReturn / 12;
+      const fv = netWorth * Math.pow(1+r, months);
+      const rem = Math.max(0, targetCost - fv);
+      return r === 0 ? rem / months : rem * r / (Math.pow(1+r, months) - 1);
     }
-
-    // ── MASTER RENDER ORCHESTRATOR ─────────────────────────────────
-    window.runAndRender = function() {
-      const results = window.runSimulation();
-      window.lastResults = results;
-      
-      // Placeholder checks for render functions to prevent errors
-      if (window.renderTimelineChart) window.renderTimelineChart(results);
-      if (window.renderMilestoneCards) window.renderMilestoneCards(results);
-      if (window.renderScenarioPanel) window.renderScenarioPanel(results);
-      if (window.updateMilestoneSpheres) window.updateMilestoneSpheres(results.milestoneResults);
-      
-      const maxBal = Math.max(...results.trajectory.map(t=>t.balance), 1);
-      window.netWorthAmplitude = Math.min(4, (maxBal / 5000000));
-      window.saveState();
-    };
     </script>
-    <!-- AGENT3:WIRING -->
+
+    <!-- WIRING & UI LOGIC -->
     <script>
     window.renderTimelineChart = function(results) {
-        const svg = document.getElementById('timeline-svg');
-        svg.innerHTML = '';
+        const svg = document.getElementById('timeline-svg'); svg.innerHTML = '';
         const maxBalance = Math.max(...results.trajectory.map(t => t.balance), 1000000);
         
-        // Axis Line
         const axis = document.createElementNS("http://www.w3.org/2000/svg", "line");
-        axis.setAttribute("x1", 60); axis.setAttribute("y1", 240);
-        axis.setAttribute("x2", 2940); axis.setAttribute("y2", 240);
+        axis.setAttribute("x1", 60); axis.setAttribute("y1", 240); axis.setAttribute("x2", 2940); axis.setAttribute("y2", 240);
         axis.setAttribute("stroke", "#8899A6"); axis.setAttribute("stroke-width", "1");
         svg.appendChild(axis);
 
-        // Age Ticks
         for (let age = 20; age <= 80; age += 5) {
             const x = 60 + (age - 20) / 60 * 2880;
             const tick = document.createElementNS("http://www.w3.org/2000/svg", "line");
-            tick.setAttribute("x1", x); tick.setAttribute("y1", 240);
-            tick.setAttribute("x2", x); tick.setAttribute("y2", 255);
-            tick.setAttribute("stroke", "#8899A6");
-            svg.appendChild(tick);
-
+            tick.setAttribute("x1", x); tick.setAttribute("y1", 240); tick.setAttribute("x2", x); tick.setAttribute("y2", 255);
+            tick.setAttribute("stroke", "#8899A6"); svg.appendChild(tick);
             const text = document.createElementNS("http://www.w3.org/2000/svg", "text");
-            text.setAttribute("x", x); text.setAttribute("y", 275);
-            text.setAttribute("text-anchor", "middle");
-            text.setAttribute("fill", "#8899A6");
-            text.setAttribute("font-size", "13");
-            text.textContent = age;
+            text.setAttribute("x", x); text.setAttribute("y", 275); text.setAttribute("text-anchor", "middle");
+            text.setAttribute("fill", "#8899A6"); text.setAttribute("font-size", "13"); text.textContent = age;
             svg.appendChild(text);
         }
 
-        // Trajectory Polyline
-        let points = results.trajectory.map(t => {
-            const x = 60 + (t.age - 20) / 60 * 2880;
-            const y = 240 - (t.balance / maxBalance) * 200;
-            return `${x},${Math.max(20, y)}`;
-        }).join(' ');
-
+        let points = results.trajectory.map(t => `${60+(t.age-20)/60*2880},${240-(t.balance/maxBalance)*200}`).join(' ');
         const polyline = document.createElementNS("http://www.w3.org/2000/svg", "polyline");
-        polyline.setAttribute("points", points);
-        polyline.setAttribute("stroke", "#00D37F");
-        polyline.setAttribute("stroke-width", "2");
-        polyline.setAttribute("fill", "none");
+        polyline.setAttribute("points", points); polyline.setAttribute("stroke", "#00D37F"); polyline.setAttribute("stroke-width", "2"); polyline.setAttribute("fill", "none");
         svg.appendChild(polyline);
 
         const area = document.createElementNS("http://www.w3.org/2000/svg", "polygon");
-        area.setAttribute("points", `60,240 ${points} 2940,240`);
-        area.setAttribute("fill", "rgba(0,211,127,0.07)");
+        area.setAttribute("points", `60,240 ${points} 2940,240`); area.setAttribute("fill", "rgba(0,211,127,0.07)");
         svg.appendChild(area);
 
-        // Milestones
-        results.milestoneResults.forEach((m, i) => {
+        results.milestoneResults.forEach(m => {
             const mx = 60 + (m.age - 20) / 60 * 2880;
-            
-            const line = document.createElementNS("http://www.w3.org/2000/svg", "line");
-            line.setAttribute("x1", mx); line.setAttribute("y1", 40);
-            line.setAttribute("x2", mx); line.setAttribute("y2", 240);
-            line.setAttribute("stroke", "#8899A6");
-            line.setAttribute("stroke-dasharray", "4");
-            line.setAttribute("opacity", "0.3");
-            svg.appendChild(line);
-
             const group = document.createElementNS("http://www.w3.org/2000/svg", "g");
-            group.style.cursor = 'grab';
-            
             const circle = document.createElementNS("http://www.w3.org/2000/svg", "circle");
-            circle.setAttribute("cx", mx); circle.setAttribute("cy", 240);
-            circle.setAttribute("r", 14);
-            circle.setAttribute("fill", "#050A0E");
-            circle.setAttribute("stroke", m.shortfall ? "#F59E0B" : "#00D37F");
-            circle.setAttribute("stroke-width", "2");
+            circle.setAttribute("cx", mx); circle.setAttribute("cy", 240); circle.setAttribute("r", 14);
+            circle.setAttribute("fill", "#050A0E"); circle.setAttribute("stroke", m.shortfall ? "#F59E0B" : "#00D37F"); circle.setAttribute("stroke-width", "2");
             group.appendChild(circle);
-
             const icon = document.createElementNS("http://www.w3.org/2000/svg", "text");
-            icon.setAttribute("x", mx); icon.setAttribute("y", 245);
-            icon.setAttribute("text-anchor", "middle");
-            icon.setAttribute("font-size", "13");
-            icon.textContent = m.icon;
+            icon.setAttribute("x", mx); icon.setAttribute("y", 245); icon.setAttribute("text-anchor", "middle"); icon.setAttribute("font-size", "13"); icon.textContent = m.icon;
             group.appendChild(icon);
-
-            const label = document.createElementNS("http://www.w3.org/2000/svg", "text");
-            label.setAttribute("x", mx); label.setAttribute("y", 210);
-            label.setAttribute("text-anchor", "middle");
-            label.setAttribute("fill", "#F0F4F8");
-            label.setAttribute("font-size", "12");
-            label.textContent = m.label;
-            svg.appendChild(label);
-
-            if (m.shortfall) {
-                const warn = document.createElementNS("http://www.w3.org/2000/svg", "text");
-                warn.setAttribute("x", mx); warn.setAttribute("y", 190);
-                warn.setAttribute("text-anchor", "middle");
-                warn.setAttribute("fill", "#F59E0B");
-                warn.textContent = '⚠️';
-                svg.appendChild(warn);
-            }
-
-            // Dragging Logic
-            const onDrag = (e) => {
-                const pt = svg.createSVGPoint();
-                pt.x = e.clientX || e.touches[0].clientX;
-                const svgP = pt.matrixTransform(svg.getScreenCTM().inverse());
-                const newX = Math.max(60, Math.min(2940, svgP.x));
-                const newAge = Math.round(20 + (newX - 60) / 2880 * 60);
-                window.horizonState.milestones.find(ms => ms.id === m.id).age = newAge;
-                window.runAndRender();
-            };
-
-            const endDrag = () => {
-                document.removeEventListener('mousemove', onDrag);
-                document.removeEventListener('mouseup', endDrag);
-                document.removeEventListener('touchmove', onDrag);
-                document.removeEventListener('touchend', endDrag);
-            };
-
-            group.addEventListener('mousedown', () => {
-                document.addEventListener('mousemove', onDrag);
-                document.addEventListener('mouseup', endDrag);
+            
+            group.addEventListener('mousedown', (e) => {
+                const onMove = (em) => {
+                    const pt = svg.createSVGPoint(); pt.x = em.clientX;
+                    const svgP = pt.matrixTransform(svg.getScreenCTM().inverse());
+                    const newAge = Math.round(20 + (Math.max(60, Math.min(2940, svgP.x)) - 60) / 2880 * 60);
+                    window.horizonState.milestones.find(x => x.id === m.id).age = Math.max(window.horizonState.currentAge, newAge);
+                    window.runAndRender();
+                };
+                const onUp = () => { document.removeEventListener('mousemove', onMove); document.removeEventListener('mouseup', onUp); };
+                document.addEventListener('mousemove', onMove); document.addEventListener('mouseup', onUp);
             });
-            group.addEventListener('touchstart', (e) => {
-                e.preventDefault();
-                document.addEventListener('touchmove', onDrag);
-                document.addEventListener('touchend', endDrag);
-            });
-
             svg.appendChild(group);
         });
     };
 
     window.renderMilestoneCards = function(results) {
-        const container = document.getElementById('milestone-cards');
-        container.innerHTML = '';
-
+        const container = document.getElementById('milestone-cards'); container.innerHTML = '';
         results.milestoneResults.forEach(m => {
-            const card = document.createElement('div');
-            card.className = 'glass-card';
-            card.style.width = 'calc(33% - 11px)';
-            card.style.minWidth = '300px';
-
-            const costStr = m.cost >= 10000000 
-                ? `₹${(m.cost / 10000000).toFixed(2)} Crores` 
-                : `₹${(m.cost / 100000).toFixed(2)} Lakhs`;
-
+            const card = document.createElement('div'); card.className = 'glass-card';
+            card.style.width = 'calc(33.33% - 11px)'; card.style.minWidth = '280px';
             card.innerHTML = `
-                <div style="display:flex; justify-content:space-between; align-items:start; margin-bottom:12px;">
-                    <div style="display:flex; align-items:center; gap:8px;">
-                        <span style="font-size:24px;">${m.icon}</span>
-                        <h3 style="margin:0; font-family:Cal Sans; font-size:18px;">${m.label}</h3>
-                    </div>
-                    <span class="badge-ontrack" style="text-transform:uppercase; font-size:10px;">${m.category}</span>
-                </div>
-                <div style="margin-bottom:16px;">
-                    <p style="margin:4px 0; color:var(--color-text-secondary); font-size:14px;">Target Age: <span style="color:var(--color-text-primary)">${m.age}</span></p>
-                    <p style="margin:4px 0; color:var(--color-text-secondary); font-size:14px;">Estimated Cost: <span style="color:var(--color-text-primary)">${costStr}</span></p>
-                </div>
-                <div style="margin-bottom:16px;">
+                <div style="display:flex;justify-content:space-between;margin-bottom:12px;">
+                    <span style="font-size:24px;">${m.icon}</span>
                     <span class="${m.shortfall ? 'badge-atrisk' : 'badge-ontrack'}">${m.shortfall ? 'AT RISK' : 'ON TRACK'}</span>
                 </div>
-                ${m.shortfall ? `
-                    <p style="color:var(--color-amber); font-size:12px; line-height:1.5;">
-                        Short by ₹${(m.gap / 100000).toFixed(2)} Lakhs. Save ₹${Math.round(m.monthlySavingsNeeded).toLocaleString()}/mo more to bridge this.
-                    </p>
-                ` : ''}
-                <div style="display:flex; gap:8px; margin-top:16px;">
-                    <button onclick="window.deleteMilestone(${m.id})" style="background:transparent; border:1px solid rgba(255,0,0,0.2); color:#ff4444; padding:6px 12px; border-radius:4px; cursor:pointer; font-size:12px;">Delete</button>
+                <h3 style="font-family:Cal Sans;margin:0 0 8px;">${m.label}</h3>
+                <p style="color:var(--color-text-secondary);font-size:14px;margin:0;">Age ${m.age} • ₹${(m.cost/100000).toFixed(1)}L</p>
+                <div style="margin-top:16px;display:flex;gap:8px;">
+                    <button class="btn-primary" style="padding:6px 12px;font-size:12px;" onclick="window.editMilestone(${m.id})">Edit</button>
+                    <button onclick="window.deleteMilestone(${m.id})" style="background:transparent;border:1px solid rgba(255,0,0,0.2);color:#ff4444;padding:6px 12px;border-radius:4px;cursor:pointer;font-size:12px;">Delete</button>
                 </div>
             `;
             container.appendChild(card);
         });
     };
 
-    window.deleteMilestone = function(id) {
-        window.horizonState.milestones = window.horizonState.milestones.filter(m => m.id !== id);
-        window.runAndRender();
-    };
-
-    window.openAddMilestone = function() {
-        const modal = document.getElementById('milestone-modal');
-        modal.style.display = 'flex';
-        modal.innerHTML = `
-            <div class="glass-card" style="width:400px;">
-                <h3 style="font-family:Cal Sans; margin-top:0;">Add Life Goal</h3>
-                <div style="display:flex; flex-direction:column; gap:16px;">
-                    <div>
-                        <label style="display:block; font-size:12px; color:var(--color-text-secondary); margin-bottom:4px;">Label</label>
-                        <input type="text" id="m-label" placeholder="e.g. World Tour" style="width:100%; background:rgba(255,255,255,0.05); border:1px solid var(--color-border); padding:10px; color:white; border-radius:4px;">
-                    </div>
-                    <div style="display:flex; gap:12px;">
-                        <div style="flex:1;">
-                            <label style="display:block; font-size:12px; color:var(--color-text-secondary); margin-bottom:4px;">Target Age</label>
-                            <input type="number" id="m-age" value="35" style="width:100%; background:rgba(255,255,255,0.05); border:1px solid var(--color-border); padding:10px; color:white; border-radius:4px;">
-                        </div>
-                        <div style="flex:1;">
-                            <label style="display:block; font-size:12px; color:var(--color-text-secondary); margin-bottom:4px;">Cost (Lakhs)</label>
-                            <input type="number" id="m-cost" value="10" style="width:100%; background:rgba(255,255,255,0.05); border:1px solid var(--color-border); padding:10px; color:white; border-radius:4px;">
-                        </div>
-                    </div>
-                    <div>
-                        <label style="display:block; font-size:12px; color:var(--color-text-secondary); margin-bottom:4px;">Category</label>
-                        <select id="m-category" style="width:100%; background:rgba(0,0,0,0.3); border:1px solid var(--color-border); padding:10px; color:white; border-radius:4px;">
-                            <option value="home">Home</option>
-                            <option value="business">Business</option>
-                            <option value="education">Education</option>
-                            <option value="vehicle">Vehicle</option>
-                            <option value="savings">Savings</option>
-                            <option value="retirement">Retirement</option>
-                            <option value="other">Other</option>
-                        </select>
-                    </div>
-                    <div style="display:flex; gap:12px; margin-top:8px;">
-                        <button onclick="window.submitMilestone()" class="btn-primary" style="flex:2;">Add Goal</button>
-                        <button onclick="document.getElementById('milestone-modal').style.display='none'" style="flex:1; background:transparent; border:1px solid var(--color-border); color:white; border-radius:8px; cursor:pointer;">Cancel</button>
-                    </div>
-                </div>
-            </div>
-        `;
-    };
-
-    window.submitMilestone = function() {
-        const categoryIcons = { home:'🏠', business:'💼', education:'🎓', vehicle:'🚗', savings:'🏦', retirement:'🌅', other:'🎯' };
-        const label = document.getElementById('m-label').value || 'New Goal';
-        const age = parseInt(document.getElementById('m-age').value);
-        const cost = parseInt(document.getElementById('m-cost').value) * 100000;
-        const category = document.getElementById('m-category').value;
-        
-        window.horizonState.milestones.push({
-            id: Date.now(),
-            label, age, cost, category,
-            icon: categoryIcons[category] || '🎯'
-        });
-        
-        document.getElementById('milestone-modal').style.display = 'none';
-        window.runAndRender();
-    };
-
-    // Zoom Logic
-    document.querySelectorAll('.btn-zoom').forEach(btn => btn.addEventListener('click', function() {
-        document.querySelectorAll('.btn-zoom').forEach(b => b.classList.remove('active'));
-        this.classList.add('active');
-        const zoom = this.dataset.zoom;
-        const svg = document.getElementById('timeline-svg');
-        const currentAge = window.horizonState.currentAge;
-        
-        let xStart = 0, xEnd = 3000;
-        if (zoom === '5') {
-            const startAge = Math.max(20, currentAge - 1);
-            const endAge = Math.min(80, currentAge + 5);
-            xStart = 60 + (startAge - 20) / 60 * 2880;
-            xEnd = 60 + (endAge - 20) / 60 * 2880;
-        } else if (zoom === '10') {
-            const startAge = Math.max(20, currentAge - 1);
-            const endAge = Math.min(80, currentAge + 10);
-            xStart = 60 + (startAge - 20) / 60 * 2880;
-            xEnd = 60 + (endAge - 20) / 60 * 2880;
-        }
-
-        const width = xEnd - xStart;
-        const currentVB = svg.getAttribute('viewBox') || '0 0 3000 340';
-        const [currX, currY, currW, currH] = currentVB.split(' ').map(Number);
-
-        gsap.to({ x: currX, w: currW }, {
-            x: xStart,
-            w: width,
-            duration: 0.6,
-            ease: "power2.inOut",
-            onUpdate: function() {
-                svg.setAttribute('viewBox', `${this.targets()[0].x} 0 ${this.targets()[0].w} 340`);
-            }
-        });
-    }));
-
     window.renderScenarioPanel = function(results) {
         const s = window.horizonState;
+        const corpus = (results.trajectory.find(t => t.age === 60) || results.trajectory[results.trajectory.length-1]).balance;
+        document.getElementById('out-corpus').textContent = corpus >= 10000000 ? `₹${(corpus/10000000).toFixed(2)} Cr` : `₹${(corpus/100000).toFixed(2)} L`;
         
-        // 1. Update Corpus at Age 60
-        const age60Point = results.trajectory.find(t => t.age === 60) || results.trajectory[results.trajectory.length - 1];
-        const corpus = age60Point.balance;
-        const corpusStr = corpus >= 10000000 
-            ? `₹${(corpus / 10000000).toFixed(2)} Cr` 
-            : `₹${(corpus / 100000).toFixed(2)} L`;
-        document.getElementById('out-corpus').textContent = corpusStr;
-
-        // 2. Render Feasibility
         const feas = document.getElementById('out-feasibility');
         feas.innerHTML = '<p class="ctrl-label">Goal Feasibility</p>';
         results.milestoneResults.slice(0, 4).forEach(m => {
-            const row = document.createElement('div');
-            row.style.display = 'flex'; row.style.justifyContent = 'space-between'; row.style.alignItems = 'center'; row.style.marginBottom = '8px';
-            row.innerHTML = `
-                <span style="font-size:13px;color:var(--color-text-primary)">${m.icon} ${m.label}</span>
-                <div style="text-align:right">
-                    <span class="${m.shortfall ? 'badge-atrisk' : 'badge-ontrack'}" style="font-size:10px;">${m.shortfall ? 'AT RISK' : 'ON TRACK'}</span>
-                    ${m.shortfall ? `<p style="margin:2px 0 0;font-size:11px;color:var(--color-amber)">+₹${Math.round(m.monthlySavingsNeeded).toLocaleString()}/mo</p>` : ''}
-                </div>
-            `;
+            const row = document.createElement('div'); row.style.display='flex'; row.style.justifyContent='space-between'; row.style.marginBottom='8px';
+            row.innerHTML = `<span style="font-size:13px;">${m.icon} ${m.label}</span><span class="${m.shortfall?'badge-atrisk':'badge-ontrack'}" style="font-size:10px;">${m.shortfall?'AT RISK':'ON TRACK'}</span>`;
             feas.appendChild(row);
         });
 
-        // 3. Render Delta Table
         const delta = document.getElementById('out-delta');
-        delta.innerHTML = `
-            <table style="width:100%;font-size:12px;border-collapse:collapse;">
-                <thead><tr style="text-align:left;color:var(--color-text-secondary);border-bottom:1px solid var(--color-border)"><th style="padding-bottom:8px">Goal</th><th style="padding-bottom:8px">Gap</th><th style="padding-bottom:8px">Monthly Needed</th></tr></thead>
-                <tbody>
-                    ${results.milestoneResults.filter(m => m.shortfall).map(m => `
-                        <tr style="border-bottom:1px solid rgba(255,255,255,0.05)">
-                            <td style="padding:8px 0">${m.label}</td>
-                            <td style="padding:8px 0">₹${(m.gap / 100000).toFixed(1)}L</td>
-                            <td style="padding:8px 0;color:var(--color-emerald)">₹${Math.round(m.monthlySavingsNeeded).toLocaleString()}</td>
-                        </tr>
-                    `).join('') || '<tr><td colspan="3" style="padding:16px 0;text-align:center;color:var(--color-text-secondary)">All goals are currently on track</td></tr>'}
-                </tbody>
-            </table>
-        `;
+        delta.innerHTML = `<table style="width:100%;font-size:12px;">${results.milestoneResults.filter(m=>m.shortfall).map(m=>`<tr><td>${m.label}</td><td style="text-align:right;color:var(--color-emerald)">+₹${Math.round(m.monthlySavingsNeeded).toLocaleString()}/mo</td></tr>`).join('') || '<tr><td>All goals on track</td></tr>'}</table>`;
 
-        // 4. Retirement Readiness
-        const retireGoal = 20000000;
-        const pct = Math.min(100, Math.max(0, (corpus / retireGoal) * 100));
-        document.getElementById('out-retire-bar').style.width = pct + '%';
-        document.getElementById('out-retire-pct').textContent = `${Math.round(pct)}% of retirement goal (₹2 Cr) covered`;
+        const pct = Math.min(100, (corpus / 20000000) * 100);
+        document.getElementById('out-retire-bar').style.width = pct+'%';
+        document.getElementById('out-retire-pct').textContent = `${Math.round(pct)}% of retirement goal covered`;
 
-        // 5. Template Cards
-        const templateDiv = document.getElementById('templates');
-        templateDiv.innerHTML = '<p class="ctrl-label">Quick Templates</p>';
-        Object.keys(window.templates).forEach(key => {
-            const t = window.templates[key];
-            const active = window.activeTemplate === key;
-            const card = document.createElement('div');
-            card.className = 'btn-zoom';
-            card.style.display = 'flex'; card.style.alignItems = 'center'; card.style.gap = '10px'; card.style.padding = '10px 16px'; card.style.borderRadius = '8px'; card.style.marginBottom = '8px';
-            if (active) card.classList.add('active');
-            card.onclick = () => window.loadTemplate(key);
-            card.innerHTML = `<span>${t.icon}</span><span style="font-size:13px">${t.label}</span>`;
-            templateDiv.appendChild(card);
+        const tplDiv = document.getElementById('templates'); tplDiv.innerHTML = '<p class="ctrl-label">Quick Templates</p>';
+        Object.keys(window.templates).forEach(k => {
+            const btn = document.createElement('div'); btn.className = 'btn-zoom' + (window.activeTemplate===k?' active':'');
+            btn.style.display='inline-flex'; btn.style.margin='0 8px 8px 0'; btn.onclick = () => window.loadTemplate(k);
+            btn.innerHTML = `${window.templates[k].icon} ${window.templates[k].label}`;
+            tplDiv.appendChild(btn);
         });
+    };
 
-        // Sync inputs
-        document.getElementById('val-savings').textContent = s.monthlySavings.toLocaleString();
+    window.runAndRender = function() {
+        const results = window.runSimulation();
+        window.renderTimelineChart(results); window.renderMilestoneCards(results); window.renderScenarioPanel(results);
+        if(window.updateMilestoneSpheres) window.updateMilestoneSpheres(results.milestoneResults);
+        window.saveState();
+    };
+
+    window.loadTemplate = function(k) {
+        window.horizonState.milestones = JSON.parse(JSON.stringify(window.templates[k].milestones));
+        window.activeTemplate = k; window.runAndRender();
+    };
+
+    window.editMilestone = function(id) {
+        const m = window.horizonState.milestones.find(x=>x.id===id); if(!m) return;
+        const modal = document.getElementById('milestone-modal'); modal.style.display = 'flex';
+        modal.innerHTML = `<div class="glass-card" style="min-width:320px;display:flex;flex-direction:column;gap:16px;"><h3 style="font-family:Cal Sans;">Edit Milestone</h3><label class="ctrl-label">Label<input type="text" id="edit-label" value="${m.label}" style="width:100%;background:transparent;border:1px solid var(--color-border);border-radius:8px;color:white;padding:8px;"></label><label class="ctrl-label">Age<input type="number" id="edit-age" value="${m.age}" style="width:100%;background:transparent;border:1px solid var(--color-border);border-radius:8px;color:white;padding:8px;"></label><label class="ctrl-label">Cost (₹)<input type="number" id="edit-cost" value="${m.cost}" style="width:100%;background:transparent;border:1px solid var(--color-border);border-radius:8px;color:white;padding:8px;"></label><div style="display:flex;gap:10px;"><button class="btn-primary" onclick="window.saveMilestoneEdit(${id})">Save</button><button onclick="document.getElementById('milestone-modal').style.display='none'" class="btn-zoom">Cancel</button></div></div>`;
+    };
+
+    window.saveMilestoneEdit = function(id) {
+        const m = window.horizonState.milestones.find(x=>x.id===id);
+        m.label = document.getElementById('edit-label').value; m.age = +document.getElementById('edit-age').value; m.cost = +document.getElementById('edit-cost').value;
+        document.getElementById('milestone-modal').style.display = 'none'; window.runAndRender();
+    };
+
+    window.deleteMilestone = function(id) {
+        window.horizonState.milestones = window.horizonState.milestones.filter(x=>x.id!==id); window.runAndRender();
+    };
+
+    window.openAddMilestone = function() {
+        const modal = document.getElementById('milestone-modal'); modal.style.display = 'flex';
+        modal.innerHTML = `<div class="glass-card" style="min-width:320px;display:flex;flex-direction:column;gap:16px;"><h3 style="font-family:Cal Sans;">Add Goal</h3><input type="text" id="add-label" placeholder="Label" style="width:100%;background:transparent;border:1px solid var(--color-border);border-radius:8px;color:white;padding:8px;"><input type="number" id="add-age" placeholder="Age" style="width:100%;background:transparent;border:1px solid var(--color-border);border-radius:8px;color:white;padding:8px;"><input type="number" id="add-cost" placeholder="Cost" style="width:100%;background:transparent;border:1px solid var(--color-border);border-radius:8px;color:white;padding:8px;"><button class="btn-primary" onclick="window.submitAddMilestone()">Add</button><button onclick="document.getElementById('milestone-modal').style.display='none'" class="btn-zoom">Cancel</button></div>`;
+    };
+
+    window.submitAddMilestone = function() {
+        window.horizonState.milestones.push({ id:Date.now(), label:document.getElementById('add-label').value, age:+document.getElementById('add-age').value, cost:+document.getElementById('add-cost').value, category:'other', icon:'🎯' });
+        document.getElementById('milestone-modal').style.display='none'; window.runAndRender();
+    };
+
+    document.addEventListener('DOMContentLoaded', () => {
+        if(!window.loadState()) window.loadTemplate('aditya');
+        
+        const s = window.horizonState;
         document.getElementById('ctrl-savings').value = s.monthlySavings;
-        document.getElementById('val-return').textContent = (s.annualReturn * 100).toFixed(1) + '%';
         document.getElementById('ctrl-return').value = s.annualReturn * 100;
         document.getElementById('ctrl-networth').value = s.netWorth;
         document.getElementById('ctrl-inflation').checked = s.inflationEnabled;
-        document.getElementById('val-inflrate').textContent = (s.inflationRate * 100).toFixed(1) + '% p.a.';
         document.getElementById('ctrl-inflrate').value = s.inflationRate * 100;
-        document.getElementById('inflation-sub').style.display = s.inflationEnabled ? 'block' : 'none';
-    };
 
-    // Wiring
-    document.getElementById('ctrl-savings').addEventListener('input', (e) => {
-        window.horizonState.monthlySavings = parseInt(e.target.value);
         window.runAndRender();
-    });
-    document.getElementById('ctrl-return').addEventListener('input', (e) => {
-        window.horizonState.annualReturn = parseFloat(e.target.value) / 100;
-        window.runAndRender();
-    });
-    document.getElementById('ctrl-networth').addEventListener('input', (e) => {
-        window.horizonState.netWorth = parseInt(e.target.value) || 0;
-        window.runAndRender();
-    });
-    document.getElementById('ctrl-inflation').addEventListener('change', (e) => {
-        window.horizonState.inflationEnabled = e.target.checked;
-        window.runAndRender();
-    });
-    document.getElementById('ctrl-inflrate').addEventListener('input', (e) => {
-        window.horizonState.inflationRate = parseFloat(e.target.value) / 100;
-        window.runAndRender();
+        gsap.from('.hero-inner > *', {opacity:0, y:40, stagger:0.15, duration:0.8, ease:'power2.out'});
+        gsap.registerPlugin(ScrollTrigger);
+        ['#timeline','#simulate'].forEach(sel => {
+            gsap.from(sel+' h2', {opacity:0, y:30, duration:0.6, scrollTrigger:{trigger:sel, start:'top 80%'}});
+        });
     });
 
-    // Initial Trigger
-    window.addEventListener('load', () => {
-        window.loadState();
-        window.runAndRender();
+    document.getElementById('ctrl-savings').oninput = function() { window.horizonState.monthlySavings = +this.value; document.getElementById('val-savings').textContent = (+this.value).toLocaleString('en-IN'); window.runAndRender(); };
+    document.getElementById('ctrl-return').oninput = function() { window.horizonState.annualReturn = this.value/100; document.getElementById('val-return').textContent = this.value+'%'; window.runAndRender(); };
+    document.getElementById('ctrl-networth').onchange = function() { window.horizonState.netWorth = +this.value; window.runAndRender(); };
+    document.getElementById('ctrl-inflation').onchange = function() { window.horizonState.inflationEnabled = this.checked; document.getElementById('inflation-sub').style.display = this.checked?'block':'none'; window.runAndRender(); };
+    document.getElementById('ctrl-inflrate').oninput = function() { window.horizonState.inflationRate = this.value/100; document.getElementById('val-inflrate').textContent = this.value+'%'; window.runAndRender(); };
+
+    document.querySelectorAll('.btn-zoom').forEach(btn => btn.onclick = function() {
+        document.querySelectorAll('.btn-zoom').forEach(b => b.classList.remove('active')); this.classList.add('active');
+        const zoom = this.dataset.zoom, svg = document.getElementById('timeline-svg');
+        let x1=0, w=3000;
+        if(zoom==='5') { x1=60+(window.horizonState.currentAge-20)/60*2880; w=300; }
+        else if(zoom==='10') { x1=60+(window.horizonState.currentAge-20)/60*2880; w=600; }
+        gsap.to(svg, { attr:{ viewBox: `${x1} 0 ${w} 340` }, duration:0.5 });
     });
     </script>
-
 </body>
 </html>
